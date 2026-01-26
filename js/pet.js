@@ -1,32 +1,24 @@
-import { currentUser, updateUserLocal } from './auth.js';
+import { currentUser } from './auth.js';
 import { db, doc, updateDoc } from './firebase-config.js';
 
-// [설정] 진화 트리 (확률형)
+// ★ 진화 트리 (확률형 랜덤 진화)
 const EVOLUTION_TREE = {
-    // 1단계: 알 (기본)
-    'egg': { next: ['chick_a', 'chick_b', 'slime_a'], emoji: '🥚', name: '알' },
+    'egg': { next: ['baby_chick', 'baby_slime'], emoji: '🥚', name: '알' },
     
-    // 2단계 (랜덤 분기)
-    'chick_a': { next: ['chicken_fire', 'chicken_muscle'], emoji: '🐣', name: '삐약이' },
-    'chick_b': { next: ['chicken_flower', 'chicken_water'], emoji: '🐧', name: '펭귄병아리' },
-    'slime_a': { next: ['slime_king', 'slime_ghost'], emoji: '💧', name: '물방울' },
+    // 2단계
+    'baby_chick': { next: ['chicken_red', 'chicken_blue'], emoji: '🐣', name: '삐약이' },
+    'baby_slime': { next: ['slime_king', 'slime_ghost'], emoji: '💧', name: '슬라임' },
 
     // 3단계 (최종)
-    'chicken_fire': { next: [], emoji: '🔥', name: '불닭' },
-    'chicken_muscle': { next: [], emoji: '💪', name: '헬창닭' },
-    'chicken_flower': { next: [], emoji: '🌸', name: '꽃계' },
-    'chicken_water': { next: [], emoji: '🌊', name: '바다닭' },
+    'chicken_red': { next: [], emoji: '🐓', name: '불꽃닭' },
+    'chicken_blue': { next: [], emoji: '🐧', name: '얼음펭귄' },
     'slime_king': { next: [], emoji: '👑', name: '킹슬라임' },
-    'slime_ghost': { next: [], emoji: '👻', name: '유령슬라임' }
+    'slime_ghost': { next: [], emoji: '👻', name: '유령' }
 };
 
-const MAX_EXP = 100; // 레벨업 기준 경험치
-
 export function initPet() {
-    console.log("Pet System Initialized");
     updatePetUI();
-
-    // 버튼 이벤트 연결
+    
     document.querySelectorAll('.action-btn').forEach(btn => {
         btn.addEventListener('click', () => handleInteraction(btn.dataset.action));
     });
@@ -34,83 +26,79 @@ export function initPet() {
 
 async function handleInteraction(action) {
     if (!currentUser.data) return;
+    const pet = currentUser.data.pet;
 
-    // 코인 확인
     if (currentUser.data.coins < 10) {
         alert("코인이 부족해요! (10코인 필요)");
         return;
     }
 
-    // 경험치 및 스탯 증가 로직
+    // 코인 차감 & 경험치 증가
     currentUser.data.coins -= 10;
-    currentUser.data.pet.exp += 20; // 클릭당 경험치 20
-    
-    // 단순 스탯 증가 (시각용)
-    if(action === 'feed') currentUser.data.pet.hunger = Math.min(100, currentUser.data.pet.hunger + 20);
-    if(action === 'clean') currentUser.data.pet.cleanliness = Math.min(100, currentUser.data.pet.cleanliness + 20);
-    if(action === 'play') currentUser.data.pet.fun = Math.min(100, currentUser.data.pet.fun + 20);
+    pet.exp += 20;
 
-    // ★ [핵심] 레벨업 및 진화 체크
+    // 행동별 스탯 증가
+    if (action === 'feed') pet.hunger = Math.min(100, pet.hunger + 20);
+    if (action === 'clean') pet.cleanliness = Math.min(100, pet.cleanliness + 20);
+    if (action === 'play') pet.fun = Math.min(100, pet.fun + 20);
+
+    // ★ 레벨업 및 진화 체크
     checkEvolution();
 
-    // UI 및 DB 저장
+    // 저장 및 UI 갱신
     updatePetUI();
-    await savePetState();
+    document.getElementById('user-coins').innerText = currentUser.data.coins;
+    
+    // 시각 효과
+    showFloatingText("-10 Coin", "#f1c40f");
+    showFloatingText("+20 EXP", "#3498db");
+
+    await updateDoc(doc(db, "users", currentUser.id), {
+        coins: currentUser.data.coins,
+        pet: pet
+    });
 }
 
 function checkEvolution() {
     const pet = currentUser.data.pet;
-    
-    // 현재 캐릭터 정보가 없으면 알로 초기화
-    if (!pet.characterId) pet.characterId = 'egg';
+    const currentInfo = EVOLUTION_TREE[pet.characterId] || EVOLUTION_TREE['egg'];
 
-    // 경험치가 꽉 찼는지 확인
-    if (pet.exp >= MAX_EXP) {
-        const currentInfo = EVOLUTION_TREE[pet.characterId];
-        
-        // 다음 단계가 존재하는지 확인 (최종 단계가 아니면)
-        if (currentInfo && currentInfo.next.length > 0) {
-            // ★ 랜덤 진화 로직 ★
-            const randomIndex = Math.floor(Math.random() * currentInfo.next.length);
-            const nextCharId = currentInfo.next[randomIndex];
-            
-            pet.characterId = nextCharId; // 캐릭터 ID 변경
-            pet.level += 1;
-            pet.exp = 0; // 경험치 초기화
-
-            alert(`✨ 진화했습니다! 새로운 모습: ${EVOLUTION_TREE[nextCharId].emoji}`);
+    // 경험치 100 달성 시
+    if (pet.exp >= 100) {
+        if (currentInfo.next.length > 0) {
+            // 랜덤 진화
+            const nextId = currentInfo.next[Math.floor(Math.random() * currentInfo.next.length)];
+            pet.characterId = nextId;
+            pet.level++;
+            pet.exp = 0;
+            alert(`🎉 축하합니다! ${EVOLUTION_TREE[nextId].name}(으)로 진화했습니다!`);
         } else {
-            // 최종 단계에서는 경험치만 초기화하거나 만렙 처리
-            pet.exp = MAX_EXP; 
+            pet.exp = 100; // 만렙 고정
         }
     }
-}
-
-async function savePetState() {
-    if (!currentUser.id) return;
-    const userRef = doc(db, "users", currentUser.id);
-    await updateDoc(userRef, {
-        coins: currentUser.data.coins,
-        pet: currentUser.data.pet
-    });
-    // 헤더 정보 갱신
-    document.getElementById('user-coins').innerText = currentUser.data.coins;
 }
 
 export function updatePetUI() {
     if (!currentUser.data) return;
     const pet = currentUser.data.pet;
-    
-    // 방어 코드: 캐릭터 ID가 없으면 'egg'로 설정
-    const charId = pet.characterId || 'egg';
-    const charInfo = EVOLUTION_TREE[charId] || EVOLUTION_TREE['egg'];
+    const info = EVOLUTION_TREE[pet.characterId] || EVOLUTION_TREE['egg'];
 
-    // UI 업데이트
-    document.getElementById('pet-character').innerText = charInfo.emoji;
-    document.getElementById('pet-speech').innerText = `Lv.${pet.level} ${charInfo.name}`;
-    
-    // 게이지바 업데이트
-    document.getElementById('bar-hunger').style.width = `${pet.hunger}%`;
-    document.getElementById('bar-clean').style.width = `${pet.cleanliness}%`;
-    document.getElementById('bar-fun').style.width = `${pet.fun}%`;
+    document.getElementById('pet-character').innerText = info.emoji;
+    document.getElementById('pet-level-info').innerText = `Lv.${pet.level} ${info.name}`;
+    document.getElementById('pet-speech').innerText = `경험치: ${pet.exp}%`;
+
+    document.getElementById('bar-hunger').style.width = pet.hunger + "%";
+    document.getElementById('bar-clean').style.width = pet.cleanliness + "%";
+    document.getElementById('bar-fun').style.width = pet.fun + "%";
+}
+
+function showFloatingText(text, color) {
+    const el = document.createElement('div');
+    el.innerText = text;
+    Object.assign(el.style, {
+        position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
+        color: color, fontWeight: 'bold', pointerEvents: 'none', animation: 'floatUp 1.5s ease-out forwards'
+    });
+    document.querySelector('.pet-container').appendChild(el);
+    setTimeout(() => el.remove(), 1500);
 }
