@@ -10,7 +10,9 @@
         .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         input, select { padding: 10px; width: 100%; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
         button { padding: 10px 20px; background: #2EC4B6; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .del-btn { background: #e74c3c; float: right; }
+        .del-btn { background: #e74c3c; float: right; font-size: 0.8rem; padding: 5px 10px; }
+        .post-item { border-bottom: 1px solid #eee; padding: 10px; display: flex; align-items: center; }
+        .post-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px; background: #eee; }
     </style>
 </head>
 <body>
@@ -31,7 +33,7 @@
     </div>
 
     <div class="card">
-        <h3>📸 피드 관리</h3>
+        <h3>📸 피드 관리 (이상한 사진 삭제)</h3>
         <div id="f-list"></div>
     </div>
 
@@ -39,7 +41,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ★ 설정: 여기에 Firebase 키를 넣으세요 ★
+        // ★ Firebase 설정 (본인 키로 변경 필수) ★
         const config = { apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E", authDomain: "dama-ec569.firebaseapp.com", projectId: "dama-ec569", storageBucket: "dama-ec569.firebasestorage.app", messagingSenderId: "328651666527", appId: "1:328651666527:web:4cccf725a6ef061e2b97ea", measurementId: "G-XMVX5EZ1SL" };
         const db = getFirestore(initializeApp(config));
 
@@ -56,10 +58,9 @@
         };
 
         window.del = async (col, id) => {
-            if(confirm("정말 삭제합니까?")) await deleteDoc(doc(db, col, id));
+            if(confirm("정말 삭제합니까? 복구할 수 없습니다.")) await deleteDoc(doc(db, col, id));
         };
 
-        // 목록 로딩
         onSnapshot(query(collection(db, "quests"), orderBy("createdAt", "desc")), snap => {
             document.getElementById('q-list').innerHTML = "";
             snap.forEach(d => {
@@ -72,7 +73,16 @@
             document.getElementById('f-list').innerHTML = "";
             snap.forEach(d => {
                 const p = d.data();
-                document.getElementById('f-list').innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px;"><img src="${p.img}" style="width:50px; vertical-align:middle"> <b>${p.nick}</b>: ${p.title} <button class="del-btn" onclick="del('posts','${d.id}')">삭제</button></div>`;
+                // ★ nickname, image 로 불러옴 (통일) ★
+                const nick = p.nickname || p.nick || "이름없음";
+                const img = p.image || p.img || ""; 
+                
+                document.getElementById('f-list').innerHTML += `
+                    <div class="post-item">
+                        <img src="${img}" class="post-thumb" onerror="this.src='https://via.placeholder.com/50?text=X'"> 
+                        <div style="flex:1"><b>${nick}</b>: ${p.title}</div>
+                        <button class="del-btn" onclick="del('posts','${d.id}')">삭제</button>
+                    </div>`;
             });
         });
     </script>
