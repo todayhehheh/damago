@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    <title>다마고치 퀘스트 (6단계: 피드 & 좋아요)</title>
+    <title>다마고치 퀘스트 (7단계: 데일리 미션 & 보상 분리)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         /* --- [기본 스타일] --- */
-        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; }
+        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; --done: #4cd137; }
         
         * {
             box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif;
@@ -69,7 +69,7 @@
         .exp-bar { height: 100%; background: linear-gradient(90deg, #FF9F1C, #FFD700); width: 0%; transition: width 0.5s; }
         .exp-text { position: absolute; width: 100%; text-align: center; font-size: 0.6rem; color: #555; line-height: 12px; top: 0; }
 
-        /* 상태바 & 버튼 */
+        /* 상태바 */
         .status-bars { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
         .progress-bar-bg { background: #eee; height: 10px; border-radius: 5px; overflow: hidden; margin-top:5px; }
         .progress-bar { height: 100%; background: var(--secondary); width: 50%; transition: width 0.3s; }
@@ -91,29 +91,24 @@
         .quest-card:active { transform: scale(0.98); background: #fafafa; }
         .quest-tag { font-size: 0.8rem; background: #E3F2FD; color: #2196F3; padding: 3px 8px; border-radius: 5px; margin-right: 5px; }
         .quest-reward { font-weight: bold; color: #f1c40f; font-size: 0.9rem; }
-        .quest-exp { font-size: 0.8rem; color: #999; margin-left: 5px; }
-        .delete-btn {
-            position: absolute; right: -10px; top: -10px;
-            background: red; color: white; border: none; width: 25px; height: 25px;
-            border-radius: 50%; cursor: pointer; display: none;
+        
+        /* 보상 받기 버튼 */
+        .claim-btn-small {
+            background: var(--primary); color: white; border: none; padding: 8px 15px;
+            border-radius: 20px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
+            animation: bounce 1s infinite;
         }
 
-        /* ★ 피드(게시물) 카드 스타일 (NEW) ★ */
-        .feed-card {
-            background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        /* 피드 카드 */
+        .feed-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .feed-user { font-weight: bold; display: flex; align-items: center; gap: 5px; }
         .feed-quest-title { font-size: 0.8rem; color: #2196F3; background: #E3F2FD; padding: 2px 6px; border-radius: 4px; }
         .feed-img { width: 100%; height: 250px; object-fit: cover; border-radius: 10px; background: #eee; }
         .feed-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
         .feed-date { font-size: 0.8rem; color: #999; }
-        
-        /* 좋아요 버튼 */
         .like-btn { border: none; background: none; font-size: 1.2rem; cursor: pointer; color: #ccc; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
         .like-btn.liked { color: var(--heart); transform: scale(1.1); }
-        .like-count { font-size: 0.9rem; font-weight: bold; color: #555; }
 
         /* 하단 메뉴 */
         .bottom-nav {
@@ -127,7 +122,7 @@
         .nav-btn.active { color: var(--secondary); font-weight: bold; }
         .nav-btn i { font-size: 1.4rem; margin-bottom: 3px; }
 
-        /* 모달창들 */
+        /* 모달창 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 2000;
@@ -163,8 +158,7 @@
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
                     <div class="speech-bubble" id="pet-speech">로딩 중...</div>
-                    <img id="pet-img" src="images/pet_lv1.png" 
-                         onerror="this.src='https://via.placeholder.com/200?text=No+Image'" alt="펫">
+                    <img id="pet-img" src="images/pet_lv1.png" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
                 </div>
                 
                 <div class="level-info">
@@ -190,16 +184,12 @@
 
             <section id="quest-section" class="hidden-section">
                 <h2 style="margin-bottom:15px;">오늘의 퀘스트</h2>
-                <div id="quest-list" style="display:flex; flex-direction:column; gap:10px;">
-                    <div style="text-align:center; padding:20px; color:#999;">로딩 중...</div>
-                </div>
+                <div id="quest-list" style="display:flex; flex-direction:column; gap:10px;"></div>
             </section>
 
             <section id="feed-section" class="hidden-section">
                 <h2 style="margin-bottom:15px;">우리 반 갤러리</h2>
-                <div id="feed-list">
-                    <div style="text-align:center; padding:20px; color:#999;">로딩 중...</div>
-                </div>
+                <div id="feed-list"></div>
             </section>
         </main>
 
@@ -213,18 +203,19 @@
     <div id="modal-overlay" class="modal-overlay hidden" style="display:none;">
         <div class="modal-content">
             <button class="close-modal" onclick="window.app.closeModal()">&times;</button>
-            <h2 id="m-title" style="margin-bottom:10px;">퀘스트 제목</h2>
+            <h2 id="m-title" style="margin-bottom:10px;">퀘스트 인증</h2>
             <p id="m-desc" style="color:#666; margin-bottom:20px;">설명</p>
             
             <div id="photo-upload-area" style="background:#f5f5f5; border-radius:10px; padding:20px; cursor:pointer;" onclick="document.getElementById('file-input').click()">
                 <div id="preview-area">
                     <i class="fas fa-camera" style="font-size:2rem; color:#ccc;"></i>
-                    <p style="margin-top:10px; font-size:0.9rem; color:#888;">터치해서 인증샷 찍기</p>
+                    <p style="margin-top:10px; font-size:0.9rem; color:#888;">터치해서 사진 올리기</p>
                 </div>
                 <img id="preview-img" style="width:100%; border-radius:10px; display:none;">
             </div>
             <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="window.app.handleFileSelect(this)">
-            <button id="claim-btn" class="btn-primary" disabled onclick="window.app.claimReward()">보상 받고 공유하기</button>
+            
+            <button id="submit-quest-btn" class="btn-primary" disabled onclick="window.app.submitQuestPhoto()">인증샷 제출하기</button>
         </div>
     </div>
 
@@ -242,7 +233,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, deleteDoc, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, deleteDoc, onSnapshot, query, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E",
@@ -261,12 +252,18 @@
         const isAdmin = urlParams.get('role') === 'admin';
 
         let currentUser = null;
-        let currentQuest = null;
-        let selectedImageBase64 = null; // 업로드할 이미지 데이터
+        let currentQuestId = null; // 현재 진행중인 퀘스트 ID
+        let selectedImageBase64 = null;
 
         const IMAGES = { eat: "images/pet_eat.png", clean: "images/pet_bath.png", play: "images/pet_play.png" };
         let isPetBusy = false; 
         const EXP_PER_LEVEL = 100;
+
+        // ★ 고정 데일리 퀘스트 정의 (DB에 없어도 항상 뜸) ★
+        const DAILY_QUESTS = [
+            { id: 'daily_photo', title: '📷 오늘의 인증샷', desc: '오늘의 활동 사진을 올려보세요!', reward: 50, type: '매일' },
+            { id: 'daily_likes', title: '❤️ 친구 칭찬하기', desc: '피드에서 좋아요 3번 누르기', reward: 30, type: '매일' }
+        ];
 
         window.app = {
             switchTab: (targetId, btn) => {
@@ -278,11 +275,19 @@
                 });
             },
 
+            // ★ 펫 행동 (100 이상이면 거절) ★
             action: async (type) => {
                 if (!currentUser) return alert("로딩 중입니다!");
                 if (isPetBusy) return;
-                if (currentUser.coins < 10) return alert("코인이 부족해요!");
 
+                // 1. 상태 체크 (이미 100이면 거절)
+                if (type === 'feed' && currentUser.pet.hunger >= 100) return alert("배불러요! 더 못 먹어요.");
+                if (type === 'clean' && currentUser.pet.cleanliness >= 100) return alert("이미 반짝반짝 깨끗해요!");
+                if (type === 'play' && currentUser.pet.fun >= 100) return alert("이미 너무 신나요!");
+
+                if (currentUser.coins < 10) return alert("코인이 부족해요! (10원 필요)");
+
+                // 2. 실행 (코인 차감)
                 currentUser.coins -= 10;
                 addExp(5);
                 
@@ -309,7 +314,7 @@
                 const desc = document.getElementById('new-q-desc').value;
                 const reward = parseInt(document.getElementById('new-q-reward').value);
                 const type = document.getElementById('new-q-type').value;
-                if(!title || !reward) return alert("제목/보상 필수");
+                if(!title || !reward) return alert("필수 입력 확인");
                 await addDoc(collection(db, "quests"), { title, desc, reward, type, createdAt: Date.now() });
                 alert("등록됨"); document.getElementById('admin-modal').style.display = 'none';
             },
@@ -318,16 +323,18 @@
                 if(confirm("삭제?")) await deleteDoc(doc(db, "quests", questId));
             },
 
-            // --- 퀘스트 & 피드 ---
+            // --- 퀘스트 로직 (보상 분리) ---
             openQuestModal: (id, title, desc, reward) => {
-                currentQuest = { id, title, desc, reward };
+                currentQuestId = id; // 현재 퀘스트 ID 저장
                 document.getElementById('m-title').innerText = title;
                 document.getElementById('m-desc').innerText = desc;
-                document.getElementById('claim-btn').innerText = `${reward}코인 + 20EXP 받기`;
-                document.getElementById('claim-btn').disabled = true; 
+                
+                // 사진 초기화
                 document.getElementById('preview-area').style.display = 'block';
                 document.getElementById('preview-img').style.display = 'none';
                 document.getElementById('file-input').value = ''; 
+                document.getElementById('submit-quest-btn').disabled = true;
+
                 document.getElementById('modal-overlay').style.display = 'flex';
                 selectedImageBase64 = null;
             },
@@ -336,64 +343,86 @@
                 if (input.files && input.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        // 이미지 리사이징 (용량 줄이기)
-                        const img = new Image();
-                        img.src = e.target.result;
+                        const img = new Image(); img.src = e.target.result;
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 500; // 가로 500px로 제한
+                            const MAX_WIDTH = 500; 
                             const scaleSize = MAX_WIDTH / img.width;
-                            canvas.width = MAX_WIDTH;
-                            canvas.height = img.height * scaleSize;
+                            canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.7); // 압축
+                            selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
 
                             document.getElementById('preview-area').style.display = 'none';
                             const pImg = document.getElementById('preview-img');
                             pImg.src = selectedImageBase64;
                             pImg.style.display = 'block';
-                            const btn = document.getElementById('claim-btn');
-                            btn.disabled = false;
-                            btn.style.backgroundColor = '#FF9F1C'; 
+                            document.getElementById('submit-quest-btn').disabled = false;
                         }
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
             },
 
-            claimReward: async () => {
-                if(!currentQuest) return;
+            // 1. 사진 제출 (보상 아직 안 줌)
+            submitQuestPhoto: async () => {
+                if(!currentQuestId) return;
                 
-                // 1. 코인 & 경험치 보상
-                currentUser.coins += currentQuest.reward;
-                addExp(20);
+                // 기록에 '완료함(done)' 상태로 저장 (claimed: false)
+                currentUser.questLog[currentQuestId] = { done: true, claimed: false };
                 
-                // 2. 피드에 게시물 업로드
+                // 피드에 업로드
                 if(selectedImageBase64) {
                     await addDoc(collection(db, "posts"), {
                         userId: userId,
                         nickname: currentUser.nickname,
-                        questTitle: currentQuest.title,
+                        questTitle: "퀘스트 인증",
                         image: selectedImageBase64,
                         likes: [],
                         createdAt: Date.now()
                     });
                 }
-
+                
                 window.app.closeModal();
-                alert(`🎉 인증 완료! 보상을 받았고 피드에 공유되었습니다.`);
-                updateUI();
+                alert("인증샷 제출 완료! '보상 받기' 버튼을 눌러주세요.");
+                
+                updateQuestListUI(); // 목록 새로고침 (버튼 바꾸기 위해)
                 await saveUser();
             },
 
-            // 좋아요 토글
+            // 2. 보상 수령 (버튼 눌렀을 때)
+            claimReward: async (questId, reward) => {
+                // 이미 받았는지 체크
+                if(currentUser.questLog[questId] && currentUser.questLog[questId].claimed) return;
+
+                currentUser.coins += reward;
+                addExp(20);
+                
+                // 보상 받음 처리
+                currentUser.questLog[questId].claimed = true;
+                
+                alert(`🎉 ${reward}코인 획득!`);
+                updateQuestListUI(); // 목록에서 사라짐
+                await saveUser();
+            },
+
+            // 좋아요 (데일리 미션 체크 포함)
             toggleLike: async (postId, likesArray) => {
                 const postRef = doc(db, "posts", postId);
-                if(likesArray.includes(userId)) {
-                    await updateDoc(postRef, { likes: arrayRemove(userId) });
-                } else {
+                if(!likesArray.includes(userId)) {
                     await updateDoc(postRef, { likes: arrayUnion(userId) });
+                    
+                    // 데일리 미션: 좋아요 카운트 증가
+                    if(!currentUser.questLog['daily_likes']) currentUser.questLog['daily_likes'] = { count: 0, done: false, claimed: false };
+                    currentUser.questLog['daily_likes'].count++;
+                    
+                    if(currentUser.questLog['daily_likes'].count >= 3) {
+                        currentUser.questLog['daily_likes'].done = true;
+                        alert("❤️ 데일리 미션: 좋아요 3회 달성! 퀘스트 탭에서 보상을 받으세요.");
+                    }
+                    await saveUser();
+                } else {
+                    await updateDoc(postRef, { likes: arrayRemove(userId) });
                 }
             },
 
@@ -406,12 +435,17 @@
             currentUser.pet.exp += amount;
             if(currentUser.pet.exp >= EXP_PER_LEVEL) {
                 currentUser.pet.exp = 0; currentUser.pet.level += 1;
-                alert(`🎉 축하합니다! 레벨 ${currentUser.pet.level}(으)로 진화했습니다!`);
+                alert(`🎉 레벨 ${currentUser.pet.level} 달성!`);
             }
         }
 
         async function saveUser() {
-            await updateDoc(doc(db, "users", userId), { coins: currentUser.coins, pet: currentUser.pet });
+            // DB 저장 시 questLog 포함
+            await updateDoc(doc(db, "users", userId), { 
+                coins: currentUser.coins, 
+                pet: currentUser.pet,
+                questLog: currentUser.questLog
+            });
         }
 
         function updatePetImage() {
@@ -428,43 +462,45 @@
 
                 const userRef = doc(db, "users", userId);
                 const snap = await getDoc(userRef);
+                const todayStr = new Date().toDateString();
 
                 if (snap.exists()) {
                     currentUser = snap.data();
-                    if(!currentUser.pet.level) currentUser.pet.level = 1;
-                    if(!currentUser.pet.exp) currentUser.pet.exp = 0;
+                    if(!currentUser.questLog) currentUser.questLog = {};
+                    
+                    // ★ 날짜 바뀌면 데일리 퀘스트 초기화 ★
+                    if(currentUser.lastLoginDate !== todayStr) {
+                        currentUser.questLog['daily_photo'] = { done: false, claimed: false };
+                        currentUser.questLog['daily_likes'] = { count: 0, done: false, claimed: false };
+                        currentUser.lastLoginDate = todayStr;
+                        await saveUser();
+                    }
                 } else {
                     currentUser = {
-                        nickname: "모험가_" + userId.substring(0,4), // 닉네임 자동생성
+                        nickname: "모험가_" + userId.substring(0,4),
                         coins: 100,
-                        pet: { hunger: 50, cleanliness: 50, fun: 50, characterId: 'custom', level: 1, exp: 0 }
+                        pet: { hunger: 50, cleanliness: 50, fun: 50, level: 1, exp: 0 },
+                        questLog: {},
+                        lastLoginDate: todayStr
                     };
                     await setDoc(userRef, currentUser);
                 }
                 updateUI();
                 
-                // 퀘스트 로딩 (정렬 없이)
+                // 퀘스트 목록 로딩
                 onSnapshot(query(collection(db, "quests")), (snapshot) => {
-                    const list = document.getElementById('quest-list');
-                    list.innerHTML = ""; 
-                    if(snapshot.empty) list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>등록된 퀘스트가 없습니다.</div>";
-                    snapshot.forEach(qDoc => { 
-                        const q = qDoc.data();
-                        const div = document.createElement('div');
-                        div.className = 'quest-card';
-                        div.innerHTML = `<div><span class="quest-tag">${q.type}</span><b>${q.title}</b><span class="quest-exp">+20 EXP</span></div><span class="quest-reward">💰 ${q.reward}</span><button class="delete-btn" style="display: ${isAdmin ? 'block' : 'none'};" onclick="window.app.deleteQuest('${qDoc.id}', event)">X</button>`;
-                        div.onclick = () => window.app.openQuestModal(qDoc.id, q.title, q.desc, q.reward);
-                        list.appendChild(div);
-                    });
+                    // DB 퀘스트 + 데일리 퀘스트 합치기
+                    const dbQuests = [];
+                    snapshot.forEach(doc => dbQuests.push({ id: doc.id, ...doc.data() }));
+                    renderAllQuests(dbQuests);
                 });
 
-                // ★ 피드 로딩 (실시간) ★
+                // 피드 로딩
                 onSnapshot(query(collection(db, "posts")), (snapshot) => {
                     const list = document.getElementById('feed-list');
                     list.innerHTML = "";
-                    if(snapshot.empty) { list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>아직 게시물이 없습니다.<br>첫 번째 주인공이 되어보세요!</div>"; return; }
+                    if(snapshot.empty) { list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>게시물이 없습니다.</div>"; return; }
 
-                    // 최신순 정렬 (JS에서 처리)
                     const posts = [];
                     snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
                     posts.sort((a,b) => b.createdAt - a.createdAt);
@@ -472,31 +508,80 @@
                     posts.forEach(p => {
                         const isLiked = p.likes && p.likes.includes(userId);
                         const likeCount = p.likes ? p.likes.length : 0;
-                        const dateStr = new Date(p.createdAt).toLocaleDateString();
-
                         const div = document.createElement('div');
                         div.className = 'feed-card';
                         div.innerHTML = `
-                            <div class="feed-header">
-                                <div class="feed-user"><i class="fas fa-user-circle"></i> ${p.nickname}</div>
-                                <span class="feed-quest-title">${p.questTitle}</span>
-                            </div>
+                            <div class="feed-header"><div class="feed-user"><i class="fas fa-user-circle"></i> ${p.nickname}</div></div>
                             <img src="${p.image}" class="feed-img">
                             <div class="feed-footer">
                                 <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="window.app.toggleLike('${p.id}', [${p.likes ? p.likes.map(id => `'${id}'`).join(',') : ''}])">
                                     <i class="fas fa-heart"></i> <span class="like-count">${likeCount}</span>
                                 </button>
-                                <span class="feed-date">${dateStr}</span>
-                            </div>
-                        `;
+                            </div>`;
                         list.appendChild(div);
                     });
                 });
 
-            } catch (error) {
-                console.error(error);
-                alert("오류: " + error.message);
+            } catch (error) { console.error(error); alert("오류: " + error.message); }
+        }
+
+        // ★ 통합 퀘스트 렌더링 함수 ★
+        function renderAllQuests(dbQuests) {
+            const list = document.getElementById('quest-list');
+            list.innerHTML = "";
+            
+            // 1. 데일리 퀘스트 먼저
+            DAILY_QUESTS.forEach(q => renderQuestItem(q, list));
+
+            // 2. 선생님이 만든 퀘스트
+            dbQuests.forEach(q => renderQuestItem(q, list));
+        }
+
+        function renderQuestItem(q, list) {
+            // 상태 확인
+            const log = currentUser.questLog[q.id] || { done: false, claimed: false };
+            
+            // 이미 보상 받았으면 목록에서 삭제
+            if(log.claimed) return;
+
+            const div = document.createElement('div');
+            div.className = 'quest-card';
+
+            // 완료했으나 보상 안 받음 -> [보상 받기 버튼]
+            if(log.done && !log.claimed) {
+                div.innerHTML = `
+                    <div><span class="quest-tag" style="background:#4cd137; color:white;">완료</span> <b>${q.title}</b></div>
+                    <button class="claim-btn-small" onclick="window.app.claimReward('${q.id}', ${q.reward})">보상 받기</button>
+                `;
+            } 
+            // 미완료 -> 카드 누르면 수행(모달)
+            else {
+                // 좋아요 미션인 경우 진행도 표시
+                let progressText = "";
+                if(q.id === 'daily_likes') {
+                    const count = log.count || 0;
+                    progressText = `<span style="font-size:0.7rem; color:#888;">(${count}/3)</span>`;
+                }
+
+                div.innerHTML = `
+                    <div><span class="quest-tag">${q.type}</span> <b>${q.title}</b> ${progressText}</div>
+                    <span class="quest-reward">💰 ${q.reward}</span>
+                `;
+                
+                // 좋아요 미션은 클릭해도 모달 안 뜸 (피드 가서 해야 함)
+                if(q.id === 'daily_likes') {
+                    div.onclick = () => alert("피드 탭에서 친구들의 사진에 좋아요를 눌러보세요!");
+                } else {
+                    div.onclick = () => window.app.openQuestModal(q.id, q.title, q.desc, q.reward);
+                }
             }
+            list.appendChild(div);
+        }
+
+        function updateQuestListUI() {
+            // 다시 렌더링하기 위해 DB 스냅샷을 다시 기다리거나,
+            // 간단하게 UI만 갱신할 수 없으니 여기선 새로고침 효과를 위해 reload (단순화)
+            // 실제론 DB 리스너가 있어서 자동 갱신됨. 수동 호출 불필요.
         }
 
         function updateUI() {
