@@ -6,27 +6,42 @@
     <title>다마고치 퀘스트</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* --- 스타일 --- */
-        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; --gray: #bdc3c7; }
+        /* --- 스타일 정의 --- */
+        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #ddd; display: flex; justify-content: center; height: 100vh; overflow: hidden; margin: 0; }
         .app-container { width: 100%; max-width: 420px; height: 100%; background: #F7F9FC; position: relative; display: flex; flex-direction: column; }
 
+        /* 헤더 */
         .app-header { height: 60px; padding: 0 20px; background: white; z-index: 10; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        /* 닉네임 클릭 가능하게 변경 */
+        #user-nickname { cursor: pointer; border-bottom: 1px dashed #999; }
         .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
-        
+
+        /* 메인 콘텐츠 */
         #main-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
         section { display: none; } 
         section.active-section { display: block; animation: fadeIn 0.3s; }
 
+        /* 펫 영역 */
         .pet-container { text-align: center; margin: 20px 0; }
         #pet-img { width: 200px; height: 200px; object-fit: contain; }
-        .speech-bubble { background: #333; color: white; padding: 10px; border-radius: 15px; display: inline-block; margin-bottom: 10px; animation: bounce 2s infinite; }
         
+        /* 말풍선 스타일 */
+        .speech-bubble { 
+            background: #333; color: white; padding: 10px 15px; border-radius: 15px; 
+            display: inline-block; margin-bottom: 10px; min-width: 120px; position: relative;
+            animation: bounce 2s infinite; font-size: 0.9rem;
+        }
+        .speech-bubble::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent;
+        }
+
+        /* 레벨 & 상태바 */
         .level-info { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
         .exp-bar-bg { flex: 1; height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; }
         .exp-bar { height: 100%; background: linear-gradient(90deg, #FF9F1C, #FFD700); width: 0%; transition: width 0.5s; }
-        
         .status-bars { background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
         .progress-bar-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; margin-top:5px; margin-bottom: 10px;}
         .progress-bar { height: 100%; background: var(--secondary); width: 50%; }
@@ -35,36 +50,45 @@
         .action-btn { flex: 1; background: white; border: none; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
         .action-btn i { font-size: 1.5rem; color: var(--primary); display: block; margin-bottom: 5px; }
 
-        /* 퀘스트 카드 스타일 */
-        .quest-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; }
-        .quest-card.completed-card { background: #f0f0f0; color: #999; opacity: 0.8; } /* 완료된 카드 스타일 */
-        
-        .quest-tag { font-size: 0.8rem; padding: 3px 8px; border-radius: 5px; margin-right: 5px; }
+        /* 퀘스트 카드 */
+        .quest-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .quest-info { flex: 1; }
+        .quest-tag { font-size: 0.75rem; padding: 3px 6px; border-radius: 5px; margin-right: 5px; font-weight: bold; }
         .tag-daily { background: #E3F2FD; color: #2196F3; } 
-        .tag-special { background: #FFF3E0; color: #FF9800; } 
-        .tag-done { background: #4cd137; color: white; }
+        .tag-special { background: #FFF3E0; color: #FF9800; }
+        .tag-done { background: #eee; color: #999; }
+        .quest-title { font-weight: bold; font-size: 1rem; display: block; margin-bottom: 4px; }
+        .quest-reward { color: #f1c40f; font-size: 0.9rem; font-weight: bold; }
 
-        .claim-btn-small { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; cursor: pointer; animation: pulse 1.5s infinite; }
+        /* ★ 보상 받기 버튼 (디자인 개선) ★ */
+        .claim-btn {
+            background: linear-gradient(135deg, #FF9F1C, #F37335);
+            color: white; border: none; padding: 10px 15px;
+            border-radius: 25px; font-weight: bold; font-size: 0.85rem;
+            cursor: pointer; box-shadow: 0 4px 10px rgba(255, 159, 28, 0.3);
+            animation: pulse 1.5s infinite; flex-shrink: 0; margin-left: 10px;
+        }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         /* 피드 */
         .feed-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .feed-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
         .feed-img { width: 100%; height: 250px; object-fit: cover; border-radius: 10px; background: #eee; margin-top: 5px; }
-        .like-btn { border: none; background: none; color: #ccc; font-size: 1.2rem; cursor: pointer; margin-top: 10px; }
+        .like-btn { border: none; background: none; color: #ccc; font-size: 1.2rem; cursor: pointer; margin-top: 10px; display: flex; align-items: center; gap: 5px; }
         .like-btn.liked { color: var(--heart); }
 
+        /* 하단 메뉴 */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 420px; height: 70px; background: white; display: flex; border-top: 1px solid #eee; z-index: 900; }
         .nav-btn { flex: 1; border: none; background: none; color: #ccc; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .nav-btn.active { color: var(--secondary); font-weight: bold; }
         .nav-btn i { font-size: 1.4rem; margin-bottom: 3px; }
 
+        /* 모달 & 알림 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 90%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; }
         .btn-primary { width: 100%; padding: 12px; background: var(--secondary); color: white; border: none; border-radius: 10px; margin-top: 10px; font-weight: bold; cursor: pointer; }
-        .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
         
-        .toast-msg { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; z-index: 3000; animation: fadeUp 2s forwards; }
+        .toast-msg { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; z-index: 3000; animation: fadeUp 2s forwards; text-align: center; min-width: 200px; }
         @keyframes fadeUp { 0% { opacity: 0; transform: translate(-50%, 20px); } 20% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
@@ -73,15 +97,15 @@
 <body>
     <div class="app-container">
         <header class="app-header">
-            <span id="user-nickname">로딩중...</span>
+            <span id="user-nickname" onclick="app.editName()">로딩중...</span>
             <span class="coin-display">💰 <span id="user-coins">0</span></span>
         </header>
 
         <main id="main-content">
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
-                    <div class="speech-bubble" id="pet-speech">안녕!</div>
-                    <img id="pet-img" src="images/pet_lv1.png" onerror="this.src='https://via.placeholder.com/200?text=PET'">
+                    <div class="speech-bubble" id="pet-speech">안녕! 오늘도 힘내자!</div>
+                    <img id="pet-img" src="images/pet_lv1.png" onerror="this.src='https://via.placeholder.com/200?text=Pet'">
                 </div>
                 <div class="level-info">
                     <span id="level-badge" style="background:#333; color:white; padding:3px 8px; border-radius:10px; font-size:0.8rem;">Lv.1</span>
@@ -118,15 +142,15 @@
     </div>
 
     <div id="toast-box"></div>
+    
     <div id="modal-overlay" class="modal-overlay">
         <div class="modal-content">
             <h2 id="m-title">퀘스트</h2>
             <p id="m-desc" style="color:#666; margin:10px 0;">설명</p>
             <div style="background:#f5f5f5; padding:20px; border-radius:10px; margin-bottom:10px; cursor:pointer;" onclick="document.getElementById('file-input').click()">
-                <div id="preview-text">
-                    <i class="fas fa-camera" style="font-size:2rem; color:#ccc;"></i><br>터치하여 사진찍기
-                </div>
-                <img id="preview-img" style="width:100%; display:none; border-radius:5px;">
+                <i class="fas fa-camera" style="font-size:2rem; color:#ccc;"></i>
+                <div style="margin-top:5px; color:#888;">터치하여 사진찍기</div>
+                <img id="preview-img" style="width:100%; display:none; margin-top:10px; border-radius:5px;">
             </div>
             <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="app.file(this)">
             <button id="submit-btn" class="btn-primary" disabled onclick="app.submit()">제출하기</button>
@@ -138,11 +162,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot, query, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ★ 본인의 Firebase 설정 키를 여기에 넣으세요 ★
+        // ★ Firebase 키 (본인 키 유지)
         const config = { apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E", authDomain: "dama-ec569.firebaseapp.com", projectId: "dama-ec569", storageBucket: "dama-ec569.firebasestorage.app", messagingSenderId: "328651666527", appId: "1:328651666527:web:4cccf725a6ef061e2b97ea", measurementId: "G-XMVX5EZ1SL" };
         
         let db, user, curQId, upImg;
-        let globalDbQuests = []; // 퀘스트 목록 저장
+        let globalDbQuests = [];
 
         try { const app = initializeApp(config); db = getFirestore(app); } catch(e) { alert("연결 오류: "+e.message); }
 
@@ -153,6 +177,7 @@
         ];
 
         window.app = {
+            // 탭 전환
             tab: (id, btn) => {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -161,12 +186,14 @@
                     if(s.id === id) s.classList.add('active-section');
                 });
             },
+            
+            // 행동 (말풍선으로 거절)
             act: async (type) => {
                 if(!user) return;
-                // 배부름 체크
-                if(type=='feed' && user.pet.hunger>=100) return speech("배불러요!");
-                if(type=='clean' && user.pet.cleanliness>=100) return speech("이미 깨끗해요!");
-                if(type=='play' && user.pet.fun>=100) return speech("지쳤어요!");
+                // 배부름 체크 -> 말풍선에 띄우기
+                if(type=='feed' && user.pet.hunger>=100) return speech("배불러요! 그만 먹을래!");
+                if(type=='clean' && user.pet.cleanliness>=100) return speech("이미 반짝반짝해요!");
+                if(type=='play' && user.pet.fun>=100) return speech("지쳤어요! 쉴래요.");
                 if(user.coins < 10) return toast("코인이 부족해요!");
 
                 user.coins -= 10;
@@ -176,90 +203,87 @@
                 if(type=='play') user.pet.fun = Math.min(100, user.pet.fun+20);
                 
                 render();
-                speech(type=='feed'?"냠냠!": (type=='clean'?"개운해!":"신난다!"));
+                speech(type=='feed'?"냠냠! 맛있어요!": (type=='clean'?"개운해요!":"신난다!"));
                 save();
                 
-                // 이미지 잠시 변경
                 const img = document.getElementById('pet-img');
                 if(type=='feed') img.src = "images/pet_eat.png";
                 if(type=='clean') img.src = "images/pet_bath.png";
                 if(type=='play') img.src = "images/pet_play.png";
-                setTimeout(() => { updatePetImage(); speech("심심해~"); }, 2000);
+                setTimeout(() => { updatePetImage(); speech("심심해~ 놀아줘!"); }, 2000);
             },
+
+            // 닉네임 수정
+            editName: async () => {
+                const newName = prompt("변경할 닉네임을 입력하세요:", user.nickname);
+                if(newName && newName.trim() !== "") {
+                    user.nickname = newName.trim();
+                    await save();
+                    toast("닉네임이 변경되었습니다.");
+                }
+            },
+
             modal: (id, t, d) => {
                 curQId = id; upImg = null;
                 document.getElementById('m-title').innerText = t;
                 document.getElementById('m-desc').innerText = d;
-                document.getElementById('preview-text').style.display = 'block';
                 document.getElementById('preview-img').style.display = 'none';
                 document.getElementById('submit-btn').disabled = true;
                 document.getElementById('modal-overlay').style.display = 'flex';
             },
+            
             file: (inp) => {
                 if(inp.files[0]) {
                     const r = new FileReader();
                     r.onload = (e) => {
                         const img = new Image(); img.src = e.target.result;
                         img.onload = () => {
-                            // 리사이징 (용량 줄이기)
                             const cvs = document.createElement('canvas');
                             const scale = 500 / img.width;
                             cvs.width = 500; cvs.height = img.height * scale;
                             cvs.getContext('2d').drawImage(img, 0, 0, cvs.width, cvs.height);
-                            upImg = cvs.toDataURL('image/jpeg', 0.7); // 최종 데이터
-                            
+                            upImg = cvs.toDataURL('image/jpeg', 0.7);
                             document.getElementById('preview-img').src = upImg;
                             document.getElementById('preview-img').style.display = 'block';
-                            document.getElementById('preview-text').style.display = 'none';
                             document.getElementById('submit-btn').disabled = false;
                         }
                     }
                     r.readAsDataURL(inp.files[0]);
                 }
             },
+
             submit: async () => {
-                // 제출 로직
                 user.log[curQId] = { done: true, claimed: false };
-                
-                // ★ 피드 업로드 (nickname, image 통일) ★
-                if(upImg) {
-                    await addDoc(collection(db, "posts"), { 
-                        uid, 
-                        nickname: user.nickname, // 닉네임 확실하게
-                        title: "퀘스트 인증", 
-                        image: upImg, // 이미지 확실하게
-                        likes: [], 
-                        date: Date.now() 
-                    });
-                }
-                
+                if(upImg) await addDoc(collection(db, "posts"), { uid, nickname: user.nickname, title: "퀘스트 인증", image: upImg, likes: [], date: Date.now() });
                 document.getElementById('modal-overlay').style.display = 'none';
                 toast("제출 완료! 보상을 받으세요.");
-                // 퀘스트 목록 즉시 갱신 (보상 버튼 보이게)
                 renderQuests(globalDbQuests);
                 save();
             },
+
             claim: async (id, r) => {
                 user.coins += r;
                 user.log[id].claimed = true;
                 addExp(20);
-                toast(`${r}코인 획득!`);
-                renderQuests(globalDbQuests); // 완료 상태로 변경
+                toast(`🎉 ${r}코인 획득!`);
+                renderQuests(globalDbQuests);
                 save();
             },
+
             like: async (pid, likes) => {
                 const ref = doc(db, "posts", pid);
                 if(!likes.includes(uid)) {
                     await updateDoc(ref, { likes: arrayUnion(uid) });
                     if(!user.log['d_like']) user.log['d_like'] = { count: 0 };
                     user.log['d_like'].count = (user.log['d_like'].count||0) + 1;
-                    if(user.log['d_like'].count >= 3) {
+                    
+                    if(user.log['d_like'].count >= 3 && !user.log['d_like'].done) {
                         user.log['d_like'].done = true;
-                        toast("❤️ 좋아요 미션 달성!");
+                        toast("❤️ 좋아요 미션 달성! 보상을 받으세요.");
                     } else {
-                        toast("좋아요 반영됨!");
+                        toast("좋아요를 눌렀습니다!");
                     }
-                    renderQuests(globalDbQuests); // 진행도 업데이트
+                    renderQuests(globalDbQuests);
                     save();
                 } else {
                     await updateDoc(ref, { likes: arrayRemove(uid) });
@@ -268,21 +292,21 @@
         };
 
         function speech(t) { document.getElementById('pet-speech').innerText = t; }
+        
         function toast(m) {
             const d = document.createElement('div');
             d.className = 'toast-msg'; d.innerText = m;
             document.body.appendChild(d);
             setTimeout(()=>d.remove(), 2000);
         }
+
         function addExp(n) {
             user.pet.exp += n;
-            if(user.pet.exp >= 100) { user.pet.exp=0; user.pet.lv++; toast(`레벨 ${user.pet.lv} 달성!`); }
+            if(user.pet.exp >= 100) { user.pet.exp=0; user.pet.lv++; toast(`🎉 축하합니다! 레벨 ${user.pet.lv} 달성!`); }
         }
-        async function save() { 
-            // 저장할 때 nickname 필드 강제
-            await updateDoc(doc(db, "users", uid), { coins: user.coins, pet: user.pet, log: user.log, nickname: user.nickname }); 
-            render(); 
-        }
+
+        async function save() { await updateDoc(doc(db, "users", uid), { coins: user.coins, pet: user.pet, log: user.log, nickname: user.nickname }); render(); }
+        
         function updatePetImage() {
             const img = document.getElementById('pet-img');
             const lv = user.pet.level||1;
@@ -296,13 +320,15 @@
                 
                 if(snap.exists()) {
                     user = snap.data();
-                    // 데이터 보정 (nick -> nickname)
+                    if(!user.log) user.log = {};
                     if(!user.nickname && user.nick) user.nickname = user.nick;
-                    
+
+                    // ★ 날짜 비교하여 다르면 일일 미션 초기화 ★
                     if(user.lastLogin !== today) {
-                        user.log = { ...user.log, d_pic: {done:false}, d_like: {count:0} };
+                        user.log['d_pic'] = { done: false, claimed: false };
+                        user.log['d_like'] = { count: 0, done: false, claimed: false };
                         user.lastLogin = today;
-                        save();
+                        await save(); // 저장 필수!
                     }
                 } else {
                     user = { nickname: "모험가_"+uid.substr(0,4), coins: 100, pet: { hunger:50, cleanliness:50, fun:50, lv:1, exp:0 }, log: {}, lastLogin: today };
@@ -328,17 +354,16 @@
                     ps.forEach(d => arr.push({id:d.id, ...d.data()}));
                     arr.sort((a,b)=>b.date-a.date).forEach(p => {
                         const liked = p.likes && p.likes.includes(uid);
-                        // ★ nickname / image 불러오기 (혹시 모를 구버전 데이터 대비) ★
-                        const displayNick = p.nickname || p.nick || "이름없음";
-                        const displayImg = p.image || p.img || ""; 
+                        const nick = p.nickname || p.nick || "이름없음";
+                        const img = p.image || p.img || "";
                         
                         list.innerHTML += `
                             <div class="feed-card">
-                                <div class="feed-header"><b>${displayNick}</b></div>
-                                <img src="${displayImg}" class="feed-img" onerror="this.src='https://via.placeholder.com/300x200?text=Error'">
-                                <div class="feed-footer">
+                                <div class="feed-header"><b>${nick}</b></div>
+                                <img src="${img}" class="feed-img" onerror="this.src='https://via.placeholder.com/300x200?text=Error'">
+                                <div>
                                     <button class="like-btn ${liked?'liked':''}" onclick="app.like('${p.id}', [${(p.likes||[]).map(x=>`'${x}'`)}])">
-                                        ❤️ ${p.likes?p.likes.length:0}
+                                        <i class="fas fa-heart"></i> ${p.likes?p.likes.length:0}
                                     </button>
                                 </div>
                             </div>`;
@@ -348,7 +373,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // ★ 퀘스트 목록 그리기 (완료된 미션 표시) ★
         function renderQuests(dbQuests) {
             const list = document.getElementById('quest-list');
             list.innerHTML = "";
@@ -356,35 +380,41 @@
                 const log = user.log[q.id] || { done: false, claimed: false };
                 
                 const div = document.createElement('div');
+                div.className = 'quest-card';
+                const tagClass = q.type=='일일' ? 'tag-daily' : 'tag-special';
                 
-                // 1. 이미 보상 받음 (완료된 미션으로 표시)
+                // 1. 이미 보상 받음 (완료 표시)
                 if(log.claimed) {
-                    div.className = 'quest-card completed-card';
                     div.innerHTML = `
-                        <div><span class="quest-tag tag-done">완료됨</span> <b>${q.title}</b></div>
-                        <span style="color:#999; font-size:0.8rem;">보상 획득 완료</span>
+                        <div class="quest-info">
+                            <span class="quest-tag tag-done">완료됨</span> <span class="quest-title" style="color:#999; text-decoration:line-through">${q.title}</span>
+                        </div>
+                        <i class="fas fa-check-circle" style="color:#4cd137; font-size:1.5rem;"></i>
                     `;
                 }
-                // 2. 미션 완료 -> 보상 받기 버튼
+                // 2. 미션 완료 (보상 버튼)
                 else if(log.done) {
-                    div.className = 'quest-card';
                     div.innerHTML = `
-                        <div><span class="quest-tag tag-done">성공!</span> <b>${q.title}</b></div>
-                        <button class="claim-btn-small" onclick="app.claim('${q.id}', ${q.reward})">보상 받기</button>
+                        <div class="quest-info">
+                            <span class="quest-tag tag-done">성공!</span> <span class="quest-title">${q.title}</span>
+                        </div>
+                        <button class="claim-btn" onclick="app.claim('${q.id}', ${q.reward})">보상 받기</button>
                     `;
                 }
                 // 3. 진행 중
                 else {
-                    div.className = 'quest-card';
-                    let progressText = "";
-                    const tagClass = q.type=='일일' ? 'tag-daily' : 'tag-special';
+                    let progress = "";
+                    if(q.id==='d_like') progress = `<span style="font-size:0.8rem; color:#FF9F1C;">(${log.count||0}/3)</span>`;
                     
-                    if(q.id==='d_like') {
-                        const count = (user.log['d_like'] && user.log['d_like'].count) || 0;
-                        progressText = `<span style="font-size:0.8rem; color:#FF9F1C;">(${count}/3)</span>`;
-                    }
-                    div.innerHTML = `<div><span class="quest-tag ${tagClass}">${q.type}</span> <b>${q.title}</b> ${progressText}</div><b>💰${q.reward}</b>`;
-                    if(q.id==='d_like') div.onclick = () => toast("피드에서 좋아요를 누르세요!");
+                    div.innerHTML = `
+                        <div class="quest-info">
+                            <span class="quest-tag ${tagClass}">${q.type}</span> 
+                            <span class="quest-title">${q.title} ${progress}</span>
+                        </div>
+                        <span class="quest-reward">💰 ${q.reward}</span>
+                    `;
+                    
+                    if(q.id==='d_like') div.onclick = () => toast("피드에서 하트를 눌러보세요!");
                     else div.onclick = () => app.modal(q.id, q.title, q.desc);
                 }
                 list.appendChild(div);
