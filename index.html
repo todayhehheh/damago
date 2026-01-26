@@ -1,144 +1,138 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Tamagotchi Quest</title>
+    <title>일상 퀘스트 - 마이 펫</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-
 <body>
 
     <div class="app-container">
-        <!-- Header: User Info -->
         <header class="app-header">
             <div class="user-info">
-                <span id="user-nickname">로딩중...</span>
-                <span class="coin-display"><i class="fas fa-coins"></i> <span id="user-coins">0</span></span>
+                <span id="user-nickname">접속중...</span>
+                <span class="coin-display">💰 <span id="user-coins">0</span></span>
             </div>
-            <button id="admin-btn" class="icon-btn hidden"><i class="fas fa-cog"></i></button>
         </header>
 
-        <!-- Main Content Area -->
         <main id="main-content">
-            <!-- Section 1: Pet (Home) -->
+            
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
-                    <div class="speech-bubble" id="pet-speech">안녕! 난 너의 친구야.</div>
-                    <div class="pet-character" id="pet-character">
-                        <!-- Emoji or Image placeholder -->
-                        🐣
-                    </div>
+                    <div class="speech-bubble" id="pet-speech">로딩중...</div>
+                    <div class="pet-character" id="pet-character">🥚</div>
+                    <div class="pet-level-badge" id="pet-level-info">Lv.1 알</div>
                 </div>
 
                 <div class="status-bars">
                     <div class="status-item">
                         <i class="fas fa-utensils"></i>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar" id="bar-hunger" style="width: 50%;"></div>
-                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-hunger" style="width: 50%;"></div></div>
                     </div>
                     <div class="status-item">
-                        <i class="fas fa-bath"></i>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar" id="bar-clean" style="width: 50%;"></div>
-                        </div>
+                        <i class="fas fa-soap"></i>
+                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-clean" style="width: 50%;"></div></div>
                     </div>
                     <div class="status-item">
                         <i class="fas fa-laugh"></i>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar" id="bar-fun" style="width: 50%;"></div>
-                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-fun" style="width: 50%;"></div></div>
                     </div>
                 </div>
 
                 <div class="interaction-menu">
-                    <button class="action-btn" data-action="feed"><i class="fas fa-hamburger"></i> 밥주기</button>
-                    <button class="action-btn" data-action="clean"><i class="fas fa-soap"></i> 씻기기</button>
-                    <button class="action-btn" data-action="play"><i class="fas fa-gamepad"></i> 놀아주기</button>
+                    <button class="action-btn" data-action="feed">
+                        <i class="fas fa-hamburger"></i> <span>밥주기</span><small>-10코인</small>
+                    </button>
+                    <button class="action-btn" data-action="clean">
+                        <i class="fas fa-soap"></i> <span>씻기기</span><small>-10코인</small>
+                    </button>
+                    <button class="action-btn" data-action="play">
+                        <i class="fas fa-gamepad"></i> <span>놀기</span><small>-10코인</small>
+                    </button>
                 </div>
             </section>
 
-            <!-- Section 2: Quests -->
             <section id="quest-section" class="hidden-section">
-                <h2>오늘의 퀘스트</h2>
+                <div class="section-header">
+                    <h2>오늘의 퀘스트</h2>
+                    <p>미션을 완료하고 코인을 모으세요!</p>
+                </div>
                 <div class="quest-list" id="quest-list">
-                    <!-- Quest Cards will be injected here -->
+                    <p style="text-align:center; color:#999;">등록된 퀘스트를 불러오는 중...</p>
+                </div>
+            </section>
+
+            <section id="feed-section" class="hidden-section">
+                <div class="section-header">
+                    <h2>모두의 인증</h2>
+                    <p>친구들은 어떻게 하고 있을까요?</p>
+                </div>
+                <div id="feed-container" class="feed-list">
+                    <p style="text-align:center; color:#999;">피드를 불러오는 중...</p>
                 </div>
             </section>
         </main>
 
-        <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <button class="nav-btn active" data-target="pet-section">
-                <i class="fas fa-home"></i>
-                <span>홈</span>
+                <i class="fas fa-home"></i> <span>홈</span>
             </button>
             <button class="nav-btn" data-target="quest-section">
-                <i class="fas fa-clipboard-list"></i>
-                <span>퀘스트</span>
+                <i class="fas fa-clipboard-list"></i> <span>퀘스트</span>
+            </button>
+            <button class="nav-btn" data-target="feed-section">
+                <i class="fas fa-camera-retro"></i> <span>피드</span>
             </button>
         </nav>
     </div>
 
-    <!-- Modal Template -->
     <div id="modal-overlay" class="modal-overlay hidden">
         <div class="modal-content">
             <button class="close-modal">&times;</button>
             <div id="modal-body">
-                <!-- Dynamic Content -->
-            </div>
+                </div>
         </div>
     </div>
 
-    <!-- Initialization Script -->
     <script type="module">
         import { initAuth } from './js/auth.js';
-        import { initPet, updatePetUI } from './js/pet.js';
+        import { initPet } from './js/pet.js';
         import { initQuest } from './js/quest.js';
-        import { initAdmin } from './js/admin.js';
+        import { initFeed } from './js/feed.js';
 
         async function initApp() {
-            const isAuth = await initAuth();
+            const isAuth = await initAuth(); // 로그인 체크
             if (isAuth) {
-                initPet();
-                initQuest();
-                initAdmin();
+                initPet();    // 펫 시스템 시작
+                initQuest();  // 퀘스트 로드
+                initFeed();   // 피드 로드
 
-                // Tab Navigation Logic
+                // 탭 전환 로직
                 document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const targetId = btn.getAttribute('data-target');
-
-                        // Icon toggle
+                    btn.addEventListener('click', () => {
+                        const targetId = btn.dataset.target;
+                        
+                        // 버튼 스타일 변경
                         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
 
-                        // Section toggle
+                        // 섹션 전환
                         document.querySelectorAll('section').forEach(sec => {
-                            if (sec.id === targetId) {
-                                sec.classList.remove('hidden-section');
-                                sec.classList.add('active-section');
-                            } else {
-                                sec.classList.add('hidden-section');
-                                sec.classList.remove('active-section');
-                            }
+                            sec.classList.toggle('active-section', sec.id === targetId);
+                            sec.classList.toggle('hidden-section', sec.id !== targetId);
                         });
                     });
                 });
 
-                // Modal Close Logic
+                // 모달 닫기
                 document.querySelector('.close-modal').addEventListener('click', () => {
                     document.getElementById('modal-overlay').classList.add('hidden');
                 });
             }
         }
-
         initApp();
     </script>
 </body>
-
 </html>
