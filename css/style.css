@@ -433,3 +433,17 @@ body {
 .like-btn.active {
     color: #e91e63; /* 하트 핑크색 */
 }
+
+/* [style.css] 파일 맨 아래에 추가 */
+
+/* Floating Text Animation */
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -150%); /* 위로 둥둥 떠오름 */
+    }
+}
