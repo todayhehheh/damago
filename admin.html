@@ -3,163 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>다마고치 퀘스트 - 관리자 페이지</title>
+    <title>관리자 페이지</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 800px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; text-align: center; }
-        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px; color: #34495e; }
-        
-        /* 폼 스타일 */
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
-        .btn { width: 100%; padding: 12px; background: #2EC4B6; color: white; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; }
-        .btn:hover { background: #25a499; }
-        .btn-danger { background: #e74c3c; width: auto; padding: 5px 10px; font-size: 0.8rem; }
-
-        /* 리스트 스타일 */
-        .list-item { background: #f9f9f9; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .item-info { flex: 1; }
-        .item-img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px; }
-        .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; margin-right: 5px; }
-        .tag-daily { background: #e3f2fd; color: #2196f3; }
-        .tag-special { background: #fff3e0; color: #ff9800; }
+        body { background: #f0f2f5; font-family: 'Noto Sans KR', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input, select { padding: 10px; width: 100%; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 20px; background: #2EC4B6; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .del-btn { background: #e74c3c; float: right; }
     </style>
 </head>
 <body>
+    <h1>⚙️ 선생님 관리 페이지</h1>
+    
+    <div class="card">
+        <h3>📝 퀘스트 추가</h3>
+        <select id="q-type"><option value="일일">일일 미션 (내일 사라짐)</option><option value="특별">특별 미션 (계속 유지)</option></select>
+        <input id="q-title" placeholder="제목 (예: 수학익힘책 20p)">
+        <input id="q-desc" placeholder="설명 (예: 풀고나서 인증샷)">
+        <input id="q-reward" type="number" placeholder="보상 코인">
+        <button onclick="addQ()">등록하기</button>
+    </div>
 
-<div class="container">
-    <h1>⚙️ 관리자 페이지</h1>
+    <div class="card">
+        <h3>📋 퀘스트 목록</h3>
+        <div id="q-list"></div>
+    </div>
 
-    <section>
-        <h2>📝 퀘스트 등록</h2>
-        <div class="input-group">
-            <label>퀘스트 종류</label>
-            <select id="q-type">
-                <option value="일일">📅 일일 미션 (하루 지나면 사라짐)</option>
-                <option value="특별">✨ 특별 미션 (계속 유지됨)</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>제목</label>
-            <input type="text" id="q-title" placeholder="예: 수학 익힘책 20페이지 풀기">
-        </div>
-        <div class="input-group">
-            <label>설명</label>
-            <input type="text" id="q-desc" placeholder="예: 다 풀고 책상 위 인증샷">
-        </div>
-        <div class="input-group">
-            <label>보상 코인</label>
-            <input type="number" id="q-reward" value="100">
-        </div>
-        <button class="btn" onclick="addQuest()">퀘스트 등록하기</button>
-    </section>
+    <div class="card">
+        <h3>📸 피드 관리</h3>
+        <div id="f-list"></div>
+    </div>
 
-    <section>
-        <h2>📋 등록된 퀘스트 목록</h2>
-        <div id="quest-list">로딩 중...</div>
-    </section>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <section>
-        <h2>📸 피드 관리 (게시물 삭제)</h2>
-        <div id="feed-list">로딩 중...</div>
-    </section>
-</div>
+        // ★ 설정: 여기에 Firebase 키를 넣으세요 ★
+        const config = { apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E", authDomain: "dama-ec569.firebaseapp.com", projectId: "dama-ec569", storageBucket: "dama-ec569.firebasestorage.app", messagingSenderId: "328651666527", appId: "1:328651666527:web:4cccf725a6ef061e2b97ea", measurementId: "G-XMVX5EZ1SL" };
+        const db = getFirestore(initializeApp(config));
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E",
-        authDomain: "dama-ec569.firebaseapp.com",
-        projectId: "dama-ec569",
-        storageBucket: "dama-ec569.firebasestorage.app",
-        messagingSenderId: "328651666527",
-        appId: "1:328651666527:web:4cccf725a6ef061e2b97ea",
-        measurementId: "G-XMVX5EZ1SL"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // 1. 퀘스트 추가 함수
-    window.addQuest = async () => {
-        const type = document.getElementById('q-type').value;
-        const title = document.getElementById('q-title').value;
-        const desc = document.getElementById('q-desc').value;
-        const reward = parseInt(document.getElementById('q-reward').value);
-
-        if(!title || !reward) return alert("제목과 보상을 입력해주세요.");
-
-        if(confirm(`${type} 미션으로 등록하시겠습니까?`)) {
-            await addDoc(collection(db, "quests"), {
-                type, title, desc, reward,
-                createdAt: Date.now(),
-                dateString: new Date().toDateString() // 일일 미션 날짜 비교용
-            });
-            alert("등록 완료!");
+        window.addQ = async () => {
+            const type = document.getElementById('q-type').value;
+            const title = document.getElementById('q-title').value;
+            const desc = document.getElementById('q-desc').value;
+            const reward = Number(document.getElementById('q-reward').value);
+            if(!title) return alert("제목 입력!");
+            
+            await addDoc(collection(db, "quests"), { type, title, desc, reward, createdAt: Date.now(), dateString: new Date().toDateString() });
+            alert("등록 완료");
             document.getElementById('q-title').value = "";
-            document.getElementById('q-desc').value = "";
-        }
-    };
+        };
 
-    // 2. 퀘스트 삭제 함수
-    window.deleteQuest = async (id) => {
-        if(confirm("이 퀘스트를 삭제하시겠습니까?")) {
-            await deleteDoc(doc(db, "quests", id));
-        }
-    };
+        window.del = async (col, id) => {
+            if(confirm("정말 삭제합니까?")) await deleteDoc(doc(db, col, id));
+        };
 
-    // 3. 피드 삭제 함수
-    window.deletePost = async (id) => {
-        if(confirm("이 게시물을 정말 삭제하시겠습니까? (복구 불가)")) {
-            await deleteDoc(doc(db, "posts", id));
-        }
-    };
-
-    // --- 실시간 데이터 불러오기 ---
-
-    // 퀘스트 목록
-    onSnapshot(query(collection(db, "quests"), orderBy("createdAt", "desc")), (snapshot) => {
-        const list = document.getElementById('quest-list');
-        list.innerHTML = "";
-        snapshot.forEach(doc => {
-            const q = doc.data();
-            const tagClass = q.type === '일일' ? 'tag-daily' : 'tag-special';
-            list.innerHTML += `
-                <div class="list-item">
-                    <div class="item-info">
-                        <span class="tag ${tagClass}">${q.type}</span>
-                        <b>${q.title}</b> (💰${q.reward})
-                        <br><small style="color:#666">${q.desc}</small>
-                    </div>
-                    <button class="btn-danger" onclick="deleteQuest('${doc.id}')">삭제</button>
-                </div>`;
+        // 목록 로딩
+        onSnapshot(query(collection(db, "quests"), orderBy("createdAt", "desc")), snap => {
+            document.getElementById('q-list').innerHTML = "";
+            snap.forEach(d => {
+                const q = d.data();
+                document.getElementById('q-list').innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px;">[${q.type}] <b>${q.title}</b> (${q.reward}코인) <button class="del-btn" onclick="del('quests','${d.id}')">삭제</button></div>`;
+            });
         });
-    });
 
-    // 피드 목록
-    onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), (snapshot) => {
-        const list = document.getElementById('feed-list');
-        list.innerHTML = "";
-        snapshot.forEach(doc => {
-            const p = doc.data();
-            const date = new Date(p.createdAt).toLocaleString();
-            list.innerHTML += `
-                <div class="list-item">
-                    <img src="${p.image}" class="item-img">
-                    <div class="item-info">
-                        <b>${p.nickname}</b> - ${p.questTitle}
-                        <br><small style="color:#999">${date}</small>
-                    </div>
-                    <button class="btn-danger" onclick="deletePost('${doc.id}')">삭제</button>
-                </div>`;
+        onSnapshot(query(collection(db, "posts"), orderBy("date", "desc")), snap => {
+            document.getElementById('f-list').innerHTML = "";
+            snap.forEach(d => {
+                const p = d.data();
+                document.getElementById('f-list').innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px;"><img src="${p.img}" style="width:50px; vertical-align:middle"> <b>${p.nick}</b>: ${p.title} <button class="del-btn" onclick="del('posts','${d.id}')">삭제</button></div>`;
+            });
         });
-    });
-
-</script>
+    </script>
 </body>
 </html>
