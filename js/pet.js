@@ -1,77 +1,89 @@
 import { currentUser, updateUserLocal } from './auth.js';
 import { db, doc, updateDoc } from './firebase-config.js';
 
-// Configuration
-const DECAY_RATE_PER_SECOND = 1 / 60; // Example: 1 point drop per minute (approx)
-const INTERACTION_COST = 10;
-const INTERACTION_GAIN = 15;
+// [설정] 진화 트리 (확률형)
+const EVOLUTION_TREE = {
+    // 1단계: 알 (기본)
+    'egg': { next: ['chick_a', 'chick_b', 'slime_a'], emoji: '🥚', name: '알' },
+    
+    // 2단계 (랜덤 분기)
+    'chick_a': { next: ['chicken_fire', 'chicken_muscle'], emoji: '🐣', name: '삐약이' },
+    'chick_b': { next: ['chicken_flower', 'chicken_water'], emoji: '🐧', name: '펭귄병아리' },
+    'slime_a': { next: ['slime_king', 'slime_ghost'], emoji: '💧', name: '물방울' },
+
+    // 3단계 (최종)
+    'chicken_fire': { next: [], emoji: '🔥', name: '불닭' },
+    'chicken_muscle': { next: [], emoji: '💪', name: '헬창닭' },
+    'chicken_flower': { next: [], emoji: '🌸', name: '꽃계' },
+    'chicken_water': { next: [], emoji: '🌊', name: '바다닭' },
+    'slime_king': { next: [], emoji: '👑', name: '킹슬라임' },
+    'slime_ghost': { next: [], emoji: '👻', name: '유령슬라임' }
+};
+
+const MAX_EXP = 100; // 레벨업 기준 경험치
 
 export function initPet() {
     console.log("Pet System Initialized");
-    applyDecay();
     updatePetUI();
-    startTicker();
 
-    // Bind buttons
+    // 버튼 이벤트 연결
     document.querySelectorAll('.action-btn').forEach(btn => {
         btn.addEventListener('click', () => handleInteraction(btn.dataset.action));
     });
 }
 
-function applyDecay() {
-    if (!currentUser.data || !currentUser.data.pet) return;
-
-    const lastLogin = new Date(currentUser.data.pet.lastLogin).getTime();
-    const now = new Date().getTime();
-    const diffSeconds = (now - lastLogin) / 1000;
-
-    const decayAmount = Math.floor(diffSeconds * DECAY_RATE_PER_SECOND);
-
-    if (decayAmount > 0) {
-        // Decrease stats
-        currentUser.data.pet.hunger = Math.max(0, currentUser.data.pet.hunger - decayAmount);
-        currentUser.data.pet.cleanliness = Math.max(0, currentUser.data.pet.cleanliness - decayAmount);
-        currentUser.data.pet.fun = Math.max(0, currentUser.data.pet.fun - decayAmount);
-
-        // Update last login to now
-        currentUser.data.pet.lastLogin = new Date().toISOString();
-
-        // Sync to DB (Debounced normally, but here direct)
-        savePetState();
-
-        console.log(`Applied decay: -${decayAmount} points over ${Math.floor(diffSeconds / 60)} mins`);
-    }
-}
-
 async function handleInteraction(action) {
     if (!currentUser.data) return;
 
-    // Check Coins
-    if (currentUser.data.coins < INTERACTION_COST) {
-        showSpeech("코인이 부족해요! 😭");
+    // 코인 확인
+    if (currentUser.data.coins < 10) {
+        alert("코인이 부족해요! (10코인 필요)");
         return;
     }
 
-    // Apply Effect
-    let speechText = "";
-    if (action === 'feed') {
-        currentUser.data.pet.hunger = Math.min(100, currentUser.data.pet.hunger + INTERACTION_GAIN);
-        speechText = "냠냠! 맛있다!";
-    } else if (action === 'clean') {
-        currentUser.data.pet.cleanliness = Math.min(100, currentUser.data.pet.cleanliness + INTERACTION_GAIN);
-        speechText = "상쾌해!";
-    } else if (action === 'play') {
-        currentUser.data.pet.fun = Math.min(100, currentUser.data.pet.fun + INTERACTION_GAIN);
-        speechText = "헤헤! 재밌다!";
-    }
+    // 경험치 및 스탯 증가 로직
+    currentUser.data.coins -= 10;
+    currentUser.data.pet.exp += 20; // 클릭당 경험치 20
+    
+    // 단순 스탯 증가 (시각용)
+    if(action === 'feed') currentUser.data.pet.hunger = Math.min(100, currentUser.data.pet.hunger + 20);
+    if(action === 'clean') currentUser.data.pet.cleanliness = Math.min(100, currentUser.data.pet.cleanliness + 20);
+    if(action === 'play') currentUser.data.pet.fun = Math.min(100, currentUser.data.pet.fun + 20);
 
-    // Deduct Coin
-    currentUser.data.coins -= INTERACTION_COST;
+    // ★ [핵심] 레벨업 및 진화 체크
+    checkEvolution();
 
-    // Save & Update
+    // UI 및 DB 저장
     updatePetUI();
-    showSpeech(speechText);
     await savePetState();
+}
+
+function checkEvolution() {
+    const pet = currentUser.data.pet;
+    
+    // 현재 캐릭터 정보가 없으면 알로 초기화
+    if (!pet.characterId) pet.characterId = 'egg';
+
+    // 경험치가 꽉 찼는지 확인
+    if (pet.exp >= MAX_EXP) {
+        const currentInfo = EVOLUTION_TREE[pet.characterId];
+        
+        // 다음 단계가 존재하는지 확인 (최종 단계가 아니면)
+        if (currentInfo && currentInfo.next.length > 0) {
+            // ★ 랜덤 진화 로직 ★
+            const randomIndex = Math.floor(Math.random() * currentInfo.next.length);
+            const nextCharId = currentInfo.next[randomIndex];
+            
+            pet.characterId = nextCharId; // 캐릭터 ID 변경
+            pet.level += 1;
+            pet.exp = 0; // 경험치 초기화
+
+            alert(`✨ 진화했습니다! 새로운 모습: ${EVOLUTION_TREE[nextCharId].emoji}`);
+        } else {
+            // 최종 단계에서는 경험치만 초기화하거나 만렙 처리
+            pet.exp = MAX_EXP; 
+        }
+    }
 }
 
 async function savePetState() {
@@ -79,64 +91,26 @@ async function savePetState() {
     const userRef = doc(db, "users", currentUser.id);
     await updateDoc(userRef, {
         coins: currentUser.data.coins,
-        pet: {
-            ...currentUser.data.pet,
-            lastLogin: new Date().toISOString()
-        }
+        pet: currentUser.data.pet
     });
-    // Update header
-    updateHeader();
-}
-
-function startTicker() {
-    setInterval(() => {
-        if (!currentUser.data) return;
-        // Visual decay every minute (optional) or just speech updates
-        updateSpeech();
-    }, 10000);
+    // 헤더 정보 갱신
+    document.getElementById('user-coins').innerText = currentUser.data.coins;
 }
 
 export function updatePetUI() {
     if (!currentUser.data) return;
     const pet = currentUser.data.pet;
+    
+    // 방어 코드: 캐릭터 ID가 없으면 'egg'로 설정
+    const charId = pet.characterId || 'egg';
+    const charInfo = EVOLUTION_TREE[charId] || EVOLUTION_TREE['egg'];
 
-    // Bars
+    // UI 업데이트
+    document.getElementById('pet-character').innerText = charInfo.emoji;
+    document.getElementById('pet-speech').innerText = `Lv.${pet.level} ${charInfo.name}`;
+    
+    // 게이지바 업데이트
     document.getElementById('bar-hunger').style.width = `${pet.hunger}%`;
     document.getElementById('bar-clean').style.width = `${pet.cleanliness}%`;
     document.getElementById('bar-fun').style.width = `${pet.fun}%`;
-
-    // Colors based on level
-    updateBarColor('bar-hunger', pet.hunger);
-    updateBarColor('bar-clean', pet.cleanliness);
-    updateBarColor('bar-fun', pet.fun);
-
-    updateHeader();
-}
-
-function updateBarColor(id, val) {
-    const el = document.getElementById(id);
-    if (val < 30) el.style.backgroundColor = "#e74c3c"; // Red
-    else if (val < 70) el.style.backgroundColor = "#f1c40f"; // Yellow
-    else el.style.backgroundColor = "#2ecc71"; // Green
-}
-
-function updateHeader() {
-    document.getElementById('user-nickname').innerText = currentUser.data.nickname;
-    document.getElementById('user-coins').innerText = currentUser.data.coins;
-}
-
-function updateSpeech() {
-    const pet = currentUser.data.pet;
-    if (pet.hunger < 30) showSpeech("배고파요...");
-    else if (pet.cleanliness < 30) showSpeech("냄새나요...");
-    else if (pet.fun < 30) showSpeech("심심해요...");
-}
-
-function showSpeech(text) {
-    const el = document.getElementById('pet-speech');
-    el.innerText = text;
-    // Simple animation reset
-    el.style.animation = 'none';
-    el.offsetHeight; /* trigger reflow */
-    el.style.animation = 'bounce 2s infinite';
 }
