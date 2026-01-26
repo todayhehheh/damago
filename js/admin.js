@@ -1,45 +1,51 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>관리자 페이지</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        /* 관리자 전용 스타일 오버라이드 */
-        body { background: #333; color: white; }
-        .app-container { max-width: 600px; background: #444; color: white; min-height: 100vh; }
-        input, select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; }
-        .section-box { background: #555; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        h2 { border-bottom: 1px solid #777; padding-bottom: 10px; margin-bottom: 15px; }
-    </style>
-</head>
-<body>
-    <div class="app-container" style="padding:20px;">
-        <h1 style="text-align:center; margin-bottom:20px;">🛠️ 관리자 패널</h1>
+import { db, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, limit } from './firebase-config.js';
 
-        <div class="section-box">
-            <h2>퀘스트 추가</h2>
-            <input type="text" id="q-title" placeholder="퀘스트 제목 (예: 물 마시기)">
-            <select id="q-type">
-                <option value="일일">일일 미션</option>
-                <option value="메인">메인 미션</option>
-                <option value="서브">서브 미션</option>
-            </select>
-            <input type="number" id="q-reward" placeholder="보상 코인 (예: 50)">
-            <textarea id="q-desc" placeholder="상세 설명"></textarea>
-            <button id="add-quest-btn" class="btn-primary">등록하기</button>
-        </div>
+// 퀘스트 추가
+document.getElementById('add-quest-btn').addEventListener('click', async () => {
+    const title = document.getElementById('q-title').value;
+    const type = document.getElementById('q-type').value;
+    const reward = document.getElementById('q-reward').value;
+    const desc = document.getElementById('q-desc').value;
 
-        <div class="section-box">
-            <h2>최근 게시물 관리</h2>
-            <div id="admin-post-list">
-                </div>
-        </div>
-        
-        <button onclick="location.href='index.html'" style="background:#777; width:100%; padding:15px; color:white; border:none; border-radius:10px;">앱으로 돌아가기</button>
-    </div>
+    if (!title || !reward) return alert("제목과 보상은 필수입니다.");
 
-    <script type="module" src="js/admin.js"></script>
-</body>
-</html>
+    try {
+        await addDoc(collection(db, "quests"), {
+            title, type, reward, desc, createdAt: new Date()
+        });
+        alert("✅ 퀘스트가 등록되었습니다.");
+        location.reload();
+    } catch (e) {
+        alert("오류 발생: " + e.message);
+    }
+});
+
+// 게시물 관리 (삭제)
+async function loadPosts() {
+    const list = document.getElementById('admin-post-list');
+    const q = query(collection(db, "posts"), orderBy("timestamp", "desc"), limit(10));
+    const snap = await getDocs(q);
+    
+    list.innerHTML = '';
+    snap.forEach(docSnap => {
+        const p = docSnap.data();
+        const div = document.createElement('div');
+        div.style.cssText = "background:#666; padding:10px; margin-bottom:5px; border-radius:5px; display:flex; justify-content:space-between; align-items:center;";
+        div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img src="${p.imageUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;">
+                <span style="font-size:0.8rem;">${p.userNick}<br>${p.missionTitle}</span>
+            </div>
+            <button class="del-btn" style="background:red; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">삭제</button>
+        `;
+        div.querySelector('.del-btn').addEventListener('click', async () => {
+            if (confirm("정말 삭제합니까?")) {
+                await deleteDoc(doc(db, "posts", docSnap.id));
+                div.remove();
+            }
+        });
+        list.appendChild(div);
+    });
+}
+
+loadPosts();
