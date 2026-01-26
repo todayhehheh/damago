@@ -1,11 +1,9 @@
 :root {
-    --primary-color: #FF9F1C;   /* 메인 주황색 */
-    --secondary-color: #2EC4B6; /* 포인트 민트색 */
-    --bg-color: #F0F2F5;        /* 배경 회색 */
-    --card-bg: #FFFFFF;         /* 카드 흰색 */
-    --text-color: #333333;
-    --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.08);
-    --shadow-strong: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --primary-color: #FF9F1C;
+    --secondary-color: #2EC4B6;
+    --bg-color: #F0F2F5;
+    --card-bg: #FFFFFF;
+    --nav-height: 90px; /* 메뉴바를 더 높게 설정 */
 }
 
 * {
@@ -13,30 +11,30 @@
     margin: 0;
     padding: 0;
     font-family: 'Noto Sans KR', sans-serif;
-    -webkit-tap-highlight-color: transparent; /* 터치 시 파란 박스 제거 */
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    background-color: #ddd; /* PC 배경색 */
+    background-color: #ddd;
     display: flex;
     justify-content: center;
     height: 100vh;
-    overflow: hidden; /* 전체 스크롤 방지 */
+    overflow: hidden;
 }
 
-/* 모바일 앱 컨테이너 */
+/* 앱 전체 컨테이너 */
 .app-container {
     width: 100%;
-    max-width: 450px; /* 모바일 너비 제한 */
+    max-width: 450px; /* 앱 최대 너비 */
     height: 100%;
     background-color: var(--bg-color);
     position: relative;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* --- [1] 헤더 --- */
+/* --- 헤더 --- */
 .app-header {
     height: 60px;
     padding: 0 20px;
@@ -44,165 +42,83 @@ body {
     justify-content: space-between;
     align-items: center;
     background: var(--card-bg);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     z-index: 10;
 }
+.user-info { font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; width: 100%; justify-content: space-between; }
+.coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; }
 
-.user-info {
-    font-weight: 700;
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    justify-content: space-between;
-}
-
-.coin-display {
-    background: #FFF4E6;
-    color: #F39C12;
-    padding: 6px 15px;
-    border-radius: 20px;
-    font-size: 0.95rem;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
-}
-
-/* --- [2] 메인 콘텐츠 (스크롤 영역) --- */
+/* --- 메인 콘텐츠 --- */
 #main-content {
     flex: 1;
-    overflow-y: auto; /* 여기만 스크롤 됨 */
+    overflow-y: auto;
     padding: 20px;
-    
-    /* ★ 중요: 하단 메뉴바에 가려지지 않게 여백을 많이 줌 */
-    padding-bottom: 120px; 
+    /* 메뉴바가 높아진 만큼 여백도 늘림 */
+    padding-bottom: 100px; 
 }
 
-/* 섹션 전환 애니메이션 */
+/* 섹션 전환 */
 .hidden-section { display: none; }
-.active-section { display: block; animation: fadeIn 0.4s ease-out; }
+.active-section { display: block; animation: fadeIn 0.3s; }
 
-/* 펫(홈) 섹션 */
-.pet-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 30px 0;
-}
-
-.speech-bubble {
-    background: #333;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    margin-bottom: 20px;
-    position: relative;
-    font-size: 0.9rem;
-    animation: bounce 2s infinite;
-}
-.speech-bubble::after {
-    content: ''; position: absolute; bottom: -8px; left: 50%;
-    transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid;
-    border-color: #333 transparent transparent transparent;
-}
-
-.pet-character {
-    font-size: 7rem;
-    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
-    transition: transform 0.2s;
-}
+/* 펫 섹션 */
+.pet-container { text-align: center; margin: 30px 0; }
+.speech-bubble { background: #333; color: white; padding: 10px 15px; border-radius: 15px; display: inline-block; margin-bottom: 20px; position: relative; animation: bounce 2s infinite; }
+.speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent; }
+.pet-character { font-size: 7rem; margin-bottom: 20px; transition: transform 0.1s; }
 .pet-character:active { transform: scale(0.9); }
 
 /* 게이지 바 */
-.status-bars {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: var(--shadow-soft);
-    margin-bottom: 25px;
-}
-.status-item { display: flex; align-items: center; margin-bottom: 12px; gap: 12px; }
-.status-item i { width: 20px; color: #999; text-align: center; }
-.progress-bar-bg {
-    flex: 1; height: 12px; background: #eee;
-    border-radius: 10px; overflow: hidden;
-}
-.progress-bar { height: 100%; background: var(--secondary-color); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.status-bars { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+.status-item { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
+.progress-bar-bg { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--secondary-color); transition: width 0.5s; }
 
-/* 상호작용 버튼 */
+/* 버튼들 */
 .interaction-menu { display: flex; gap: 10px; justify-content: center; }
-.action-btn {
-    flex: 1;
-    background: var(--card-bg);
-    border: none;
-    padding: 15px 10px;
-    border-radius: 15px;
-    box-shadow: var(--shadow-soft);
-    display: flex; flex-direction: column; align-items: center; gap: 5px;
-    cursor: pointer; transition: 0.2s;
-}
-.action-btn:active { transform: scale(0.95); background: #fafafa; }
+.action-btn { flex: 1; background: white; border: none; padding: 15px 5px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
 .action-btn i { font-size: 1.5rem; color: var(--primary-color); }
-.action-btn span { font-size: 0.9rem; font-weight: bold; color: var(--text-color); }
-.action-btn small { font-size: 0.7rem; color: #aaa; }
+.action-btn small { font-size: 0.7rem; color: #999; }
 
-/* 퀘스트 & 피드 공통 카드 스타일 */
+/* 퀘스트 & 피드 카드 */
 .quest-list, .feed-list { display: flex; flex-direction: column; gap: 15px; }
-.quest-card, .feed-card {
-    background: var(--card-bg);
-    border-radius: 15px;
-    box-shadow: var(--shadow-soft);
-    padding: 15px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-.quest-card:active { transform: scale(0.98); }
+.quest-card, .feed-card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.quest-info h3 { font-size: 1rem; margin-bottom: 5px; }
+.quest-reward { color: #f1c40f; font-weight: bold; }
 
-/* 퀘스트 태그 */
-.quest-info { display: flex; flex-direction: column; gap: 5px; }
-.quest-tag {
-    font-size: 0.7rem; display: inline-block; padding: 3px 8px;
-    border-radius: 5px; background: #eee; color: #555; width: fit-content;
-}
-.tag-daily { background: #E3F2FD; color: #2196F3; }
-.tag-main { background: #FFF3E0; color: #FF9800; }
-
-/* 피드 스타일 */
-.feed-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; margin-bottom: 10px; }
-.feed-img-wrapper {
-    width: 100%; height: 250px; background: #f0f0f0;
-    border-radius: 10px; overflow: hidden; margin-bottom: 10px;
-}
+.feed-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; margin-bottom: 10px; }
+.feed-img-wrapper { width: 100%; height: 250px; background: #eee; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
 .feed-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 .feed-footer { display: flex; justify-content: space-between; align-items: center; }
-.like-btn { border: none; background: none; font-size: 1.2rem; color: #ccc; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-.like-btn.liked { color: #E91E63; }
+.like-btn { border: none; background: none; font-size: 1.2rem; color: #ccc; cursor: pointer; }
+.like-btn.liked { color: #e91e63; }
 
-/* --- [3] 하단 네비게이션 (핵심 수정) --- */
+
+/* --- [★ 핵심 수정] 하단 네비게이션 --- */
 .bottom-nav {
-    /* 기존 스타일 초기화 및 재설정 */
-    background: rgba(255, 255, 255, 0.95); /* 살짝 투명해서 고급스럽게 */
-    backdrop-filter: blur(10px); /* 블러 효과 */
+    /* 1. 위치 고정 */
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%); /* 화면 중앙 정렬 */
     
+    /* 2. 크기 및 디자인 */
+    width: 100%;
+    max-width: 450px; /* 앱 컨테이너와 규격 맞춤 */
+    background: white;
+    border-top: 1px solid #eee;
+    
+    /* 3. 배치 */
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-start; /* 아이콘을 위쪽으로 정렬 */
+    padding-top: 15px; /* 아이콘 위쪽 여백 */
     
-    /* ★ 공중부양 스타일 적용 ★ */
-    position: fixed;
-    bottom: 30px; /* 바닥에서 30px 위로 띄움 (팝업 회피) */
-    left: 50%;    /* 화면 중앙 정렬 */
-    transform: translateX(-50%); /* 정확한 중앙 */
+    /* 4. ★ 팝업 회피용 깔창 (높이 키우기) ★ */
+    height: 90px; /* 높이를 넉넉하게 줌 (팝업 공간 확보) */
+    padding-bottom: 30px; /* 아이콘 아래에 빈 공간을 강제로 만듦 */
     
-    width: 90%;          /* 화면의 90% 너비만 차지 */
-    max-width: 400px;    /* 너무 길어지지 않게 */
-    height: 70px;        /* 버튼 크기 확보 */
-    
-    border-radius: 35px; /* 알약 모양으로 둥글게 */
-    box-shadow: var(--shadow-strong); /* 강한 그림자로 붕 뜬 느낌 */
-    z-index: 9999;       /* 무조건 최상단 */
-    
-    padding: 0 10px;     /* 내부 여백 */
-    border: 1px solid rgba(0,0,0,0.05); /* 미세한 테두리 */
+    z-index: 9999;
 }
 
 .nav-btn {
@@ -211,48 +127,22 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     color: #ccc;
-    gap: 4px;
+    gap: 5px;
     cursor: pointer;
-    flex: 1; /* 균등 분배 */
-    height: 100%;
+    flex: 1;
 }
 
-.nav-btn i { font-size: 1.4rem; transition: 0.2s; }
-.nav-btn span { font-size: 0.75rem; font-weight: 500; }
+.nav-btn.active { color: var(--secondary-color); font-weight: bold; }
+.nav-btn i { font-size: 1.5rem; }
 
-/* 활성화된 탭 스타일 */
-.nav-btn.active { color: var(--secondary-color); }
-.nav-btn.active i { transform: translateY(-3px); }
 
-/* --- [4] 모달 창 --- */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); z-index: 10000; /* 네비게이션보다 위 */
-    display: flex; justify-content: center; align-items: center; padding: 20px;
-    backdrop-filter: blur(3px);
-}
-.modal-content {
-    background: white; width: 100%; max-width: 350px;
-    border-radius: 20px; padding: 25px; position: relative;
-    max-height: 80vh; overflow-y: auto;
-    animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-}
-.close-modal {
-    position: absolute; top: 15px; right: 20px;
-    background: none; border: none; font-size: 1.8rem; color: #999; cursor: pointer;
-}
-.btn-primary {
-    width: 100%; padding: 15px;
-    background: var(--secondary-color); color: white;
-    border: none; border-radius: 12px; margin-top: 15px;
-    font-size: 1rem; font-weight: bold; cursor: pointer;
-    box-shadow: 0 4px 10px rgba(46, 196, 182, 0.3);
-}
+/* 모달 */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+.modal-content { background: white; width: 100%; max-width: 350px; border-radius: 15px; padding: 20px; position: relative; max-height: 80vh; overflow-y: auto; }
+.close-modal { position: absolute; top: 15px; right: 15px; border: none; background: none; font-size: 1.5rem; cursor: pointer; }
+.btn-primary { width: 100%; padding: 12px; background: var(--secondary-color); color: white; border: none; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; }
 
 /* 애니메이션 */
-@keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
-@keyframes slideUp { from { transform: translateY(50px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-@keyframes floatUp { 0% { opacity:1; transform: translate(-50%, -50%); } 100% { opacity:0; transform: translate(-50%, -150%); } }
