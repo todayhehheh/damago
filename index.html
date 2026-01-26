@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    <title>다마고치 퀘스트 (역할 구분)</title>
+    <title>다마고치 퀘스트 (디버깅 모드)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -38,8 +38,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
-        
-        /* ★ 관리자 버튼: 기본적으로 숨김 (display: none) ★ */
         .admin-btn { border: none; background: none; font-size: 1.2rem; color: #ccc; cursor: pointer; display: none; }
 
         /* 메인 콘텐츠 */
@@ -88,11 +86,10 @@
         .quest-tag { font-size: 0.8rem; background: #E3F2FD; color: #2196F3; padding: 3px 8px; border-radius: 5px; margin-right: 5px; }
         .quest-reward { font-weight: bold; color: #f1c40f; }
         
-        /* 삭제 버튼 (관리자용) */
         .delete-btn {
             position: absolute; right: -10px; top: -10px;
             background: red; color: white; border: none; width: 25px; height: 25px;
-            border-radius: 50%; cursor: pointer; display: none; /* 기본 숨김 */
+            border-radius: 50%; cursor: pointer; display: none;
         }
 
         /* 하단 메뉴 */
@@ -144,7 +141,7 @@
         <main id="main-content">
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
-                    <div class="speech-bubble" id="pet-speech">퀘스트를 기다리고 있어!</div>
+                    <div class="speech-bubble" id="pet-speech">로딩 중...</div>
                     <img id="pet-img" src="images/pet_normal.png" 
                          onerror="this.src='https://via.placeholder.com/200?text=No+Image'" 
                          alt="펫 캐릭터">
@@ -231,12 +228,10 @@
         const firebaseApp = initializeApp(firebaseConfig);
         const db = getFirestore(firebaseApp);
 
-        // ★ 역할 구분 로직
         const urlParams = new URLSearchParams(window.location.search);
         let userId = urlParams.get('id');
         if (!userId) userId = "test_user";
         
-        // 주소에 ?role=admin이 있으면 관리자 모드 활성화
         const isAdmin = urlParams.get('role') === 'admin';
 
         let currentUser = null;
@@ -277,7 +272,6 @@
                 await updateDoc(doc(db, "users", userId), { coins: currentUser.coins, pet: currentUser.pet });
             },
 
-            // 관리자 기능
             openAdminModal: () => {
                 document.getElementById('admin-modal').style.display = 'flex';
             },
@@ -353,7 +347,6 @@
 
         async function init() {
             try {
-                // 관리자 버튼 처리
                 if (isAdmin) {
                     document.getElementById('admin-gear-btn').style.display = 'block';
                 }
@@ -373,7 +366,9 @@
                 }
                 updateUI();
                 
-                const qQuery = query(collection(db, "quests"), orderBy("createdAt", "desc"));
+                // ★ 여기가 수정됨: 정렬 기능(orderBy)을 잠시 뺐습니다. (에러 방지용)
+                const qQuery = query(collection(db, "quests")); 
+                
                 onSnapshot(qQuery, (snapshot) => {
                     const list = document.getElementById('quest-list');
                     list.innerHTML = ""; 
@@ -382,8 +377,8 @@
                         list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>등록된 퀘스트가 없습니다.</div>";
                     }
 
-                    snapshot.forEach(doc => {
-                        const q = doc.data();
+                    snapshot.forEach(qDoc => { // doc 대신 qDoc으로 이름 변경 (충돌 방지)
+                        const q = qDoc.data();
                         const div = document.createElement('div');
                         div.className = 'quest-card';
                         div.innerHTML = `
@@ -392,16 +387,18 @@
                                 <b>${q.title}</b>
                             </div>
                             <span class="quest-reward">💰 ${q.reward}</span>
-                            <button class="delete-btn" style="display: ${isAdmin ? 'block' : 'none'};" onclick="window.app.deleteQuest('${doc.id}', event)">X</button>
+                            <button class="delete-btn" style="display: ${isAdmin ? 'block' : 'none'};" onclick="window.app.deleteQuest('${qDoc.id}', event)">X</button>
                         `;
-                        div.onclick = () => window.app.openQuestModal(doc.id, q.title, q.desc, q.reward);
+                        div.onclick = () => window.app.openQuestModal(qDoc.id, q.title, q.desc, q.reward);
                         list.appendChild(div);
                     });
                 });
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('pet-speech').innerText = "오류 발생!";
+                // ★ 여기에 진짜 에러 메시지가 뜹니다 ★
+                document.getElementById('pet-speech').innerText = "에러: " + error.message;
+                alert("오류 상세: " + error.message);
             }
         }
 
