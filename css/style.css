@@ -1,5 +1,3 @@
-/* css/style.css 전체 수정본 */
-
 :root {
     --primary-color: #FF9F1C;
     --secondary-color: #2EC4B6;
@@ -9,27 +7,32 @@
     --nav-height: 70px;
 }
 
+/* [핵심] 모든 요소 선택 방지 및 터치 씹힘 해결 */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     font-family: 'Noto Sans KR', sans-serif;
+
+    /* ★ 1. 텍스트/이미지 선택 절대 금지 (하얀 막대 원천 봉쇄) ★ */
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+
+    /* ★ 2. 꾹 눌렀을 때 메뉴 뜨는 것 방지 ★ */
+    -webkit-touch-callout: none !important;
     
-    /* ★ 핵심 수정 1: 텍스트 선택 원천 차단 (하얀 막대 발생 방지) ★ */
-    -webkit-user-select: none; /* 크롬/사파리 */
-    -moz-user-select: none;    /* 파이어폭스 */
-    -ms-user-select: none;     /* 인터넷 익스플로러 */
-    user-select: none;         /* 표준 */
-    
-    /* 터치 반응 속도 향상 및 더블탭 줌 방지 */
+    /* ★ 3. 터치 반응 속도 최적화 ★ */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
 }
 
-/* 입력창은 글씨 써야 하니까 예외 허용 */
+/* 입력창만 예외로 글씨 쓸 수 있게 허용 */
 input, textarea {
-    -webkit-user-select: text;
-    user-select: text;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
 }
 
 body {
@@ -37,22 +40,23 @@ body {
     display: flex;
     justify-content: center;
     height: 100vh;
-    overflow: hidden; /* 스크롤 방지 */
+    overflow: hidden;
 }
 
-/* 앱 컨테이너 */
+/* 앱 전체 컨테이너 */
 .app-container {
     width: 100%;
-    max-width: 420px; /* ★ 핵심 수정 2: 규격 고정 */
+    max-width: 420px;
     height: 100%;
     background-color: #F7F9FC;
     position: relative;
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    margin: 0 auto;
 }
 
-/* --- [1] 헤더 --- */
+/* --- 헤더 --- */
 .app-header {
     height: 60px;
     padding: 0 20px;
@@ -67,12 +71,12 @@ body {
 .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; }
 .icon-btn { border:none; background:none; font-size:1.2rem; color:#888; cursor:pointer; }
 
-/* --- [2] 메인 콘텐츠 --- */
+/* --- 메인 콘텐츠 --- */
 #main-content {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    padding-bottom: 100px; /* 하단 메뉴바 공간 확보 */
+    padding-bottom: 100px;
 }
 
 /* 섹션 공통 */
@@ -117,13 +121,15 @@ body {
 .like-btn { border:none; background:none; font-size:1.2rem; color:#ccc; }
 .like-btn.liked { color: #e91e63; }
 
-/* --- [3] 하단 네비게이션 (규격 및 터치 문제 해결) --- */
+/* --- 하단 네비게이션 --- */
 .bottom-nav {
-    position: absolute; /* fixed 대신 absolute로 변경하여 컨테이너 안에 가둠 */
+    position: fixed;
     bottom: 0;
-    left: 0;
-    width: 100%; /* 부모(420px)에 꽉 차게 */
+    left: 50%;
+    transform: translateX(-50%);
     
+    width: 100%;
+    max-width: 420px;
     height: var(--nav-height);
     background: white;
     border-top: 1px solid #eee;
@@ -132,8 +138,8 @@ body {
     justify-content: space-around;
     align-items: center;
     
-    /* ★ 핵심 수정 3: z-index 최상위 설정 (모달 제외) */
-    z-index: 100; 
+    /* ★ 중요: 터치 먹통 방지 (z-index 높임) ★ */
+    z-index: 9999;
 }
 
 .nav-btn {
@@ -152,21 +158,17 @@ body {
 .nav-btn.active { color: var(--secondary-color); font-weight: bold; }
 .nav-btn i { font-size: 1.4rem; }
 
-/* --- [4] 모달 (팝업) --- */
+/* --- 모달 --- */
 .modal-overlay {
-    position: fixed; /* 전체 화면 덮기 */
+    position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.6);
-    
-    /* ★ 핵심 수정 4: 모달이 메뉴바보다 무조건 위에 오게 함 */
-    z-index: 9999;
-    
+    z-index: 10000;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
 }
-
 .modal-content {
     background: white;
     width: 100%;
@@ -177,7 +179,6 @@ body {
     max-height: 80vh;
     overflow-y: auto;
 }
-
 .close-modal {
     position: absolute;
     top: 15px;
@@ -188,7 +189,7 @@ body {
     color: #333;
     padding: 10px;
     cursor: pointer;
-    z-index: 10000;
+    z-index: 10001;
 }
 
 /* 유틸 */
