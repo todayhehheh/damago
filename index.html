@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Tamagotchi Quest</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Header: User Info -->
+        <header class="app-header">
+            <div class="user-info">
+                <span id="user-nickname">로딩중...</span>
+                <span class="coin-display"><i class="fas fa-coins"></i> <span id="user-coins">0</span></span>
+            </div>
+            <button id="admin-btn" class="icon-btn hidden"><i class="fas fa-cog"></i></button>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- Section 1: Pet (Home) -->
+            <section id="pet-section" class="active-section">
+                <div class="pet-container">
+                    <div class="speech-bubble" id="pet-speech">안녕! 난 너의 친구야.</div>
+                    <div class="pet-character" id="pet-character">
+                        <!-- Emoji or Image placeholder -->
+                        🐣
+                    </div>
+                </div>
+
+                <div class="status-bars">
+                    <div class="status-item">
+                        <i class="fas fa-utensils"></i>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar" id="bar-hunger" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-bath"></i>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar" id="bar-clean" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-laugh"></i>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar" id="bar-fun" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="interaction-menu">
+                    <button class="action-btn" data-action="feed"><i class="fas fa-hamburger"></i> 밥주기</button>
+                    <button class="action-btn" data-action="clean"><i class="fas fa-soap"></i> 씻기기</button>
+                    <button class="action-btn" data-action="play"><i class="fas fa-gamepad"></i> 놀아주기</button>
+                </div>
+            </section>
+
+            <!-- Section 2: Quests -->
+            <section id="quest-section" class="hidden-section">
+                <h2>오늘의 퀘스트</h2>
+                <div class="quest-list" id="quest-list">
+                    <!-- Quest Cards will be injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-target="pet-section">
+                <i class="fas fa-home"></i>
+                <span>홈</span>
+            </button>
+            <button class="nav-btn" data-target="quest-section">
+                <i class="fas fa-clipboard-list"></i>
+                <span>퀘스트</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modal Template -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <div id="modal-body">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialization Script -->
+    <script type="module">
+        import { initAuth } from './js/auth.js';
+        import { initPet, updatePetUI } from './js/pet.js';
+        import { initQuest } from './js/quest.js';
+        import { initAdmin } from './js/admin.js';
+
+        async function initApp() {
+            const isAuth = await initAuth();
+            if (isAuth) {
+                initPet();
+                initQuest();
+                initAdmin();
+
+                // Tab Navigation Logic
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const targetId = btn.getAttribute('data-target');
+
+                        // Icon toggle
+                        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+
+                        // Section toggle
+                        document.querySelectorAll('section').forEach(sec => {
+                            if (sec.id === targetId) {
+                                sec.classList.remove('hidden-section');
+                                sec.classList.add('active-section');
+                            } else {
+                                sec.classList.add('hidden-section');
+                                sec.classList.remove('active-section');
+                            }
+                        });
+                    });
+                });
+
+                // Modal Close Logic
+                document.querySelector('.close-modal').addEventListener('click', () => {
+                    document.getElementById('modal-overlay').classList.add('hidden');
+                });
+            }
+        }
+
+        initApp();
+    </script>
+</body>
+
+</html>
