@@ -42,7 +42,147 @@ body {
     height: 100vh;
     overflow: hidden;
 }
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Tamagotchi Quest</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
 
+<body>
+    <script>
+        window.onload = function() {
+            // 1. 혹시 브라우저가 자동으로 텍스트를 잡았다면 즉시 해제
+            window.getSelection().removeAllRanges();
+            
+            // 2. 혹시 입력창에 포커스가 가있다면 즉시 해제 (키보드/검색바 방지)
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+            
+            // 3. 스크롤 맨 위로
+            window.scrollTo(0, 0);
+        };
+
+        // 화면 터치 시에도 혹시 모를 선택 영역 강제 해제
+        document.addEventListener('touchstart', function() {
+            window.getSelection().removeAllRanges();
+        });
+    </script>
+
+    <div class="app-container">
+        <header class="app-header">
+            <div class="user-info">
+                <span id="user-nickname">로딩중...</span>
+                <span class="coin-display"><i class="fas fa-coins"></i> <span id="user-coins">0</span></span>
+            </div>
+            <button id="admin-btn" class="icon-btn hidden"><i class="fas fa-cog"></i></button>
+        </header>
+
+        <main id="main-content">
+            <section id="pet-section" class="active-section">
+                <div class="pet-container">
+                    <div class="speech-bubble" id="pet-speech">안녕! 난 너의 친구야.</div>
+                    <div class="pet-character" id="pet-character">🥚</div>
+                </div>
+
+                <div class="status-bars">
+                    <div class="status-item">
+                        <i class="fas fa-utensils"></i>
+                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-hunger" style="width: 50%;"></div></div>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-bath"></i>
+                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-clean" style="width: 50%;"></div></div>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-laugh"></i>
+                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-fun" style="width: 50%;"></div></div>
+                    </div>
+                </div>
+
+                <div class="interaction-menu">
+                    <button class="action-btn" data-action="feed"><i class="fas fa-hamburger"></i> 밥주기</button>
+                    <button class="action-btn" data-action="clean"><i class="fas fa-soap"></i> 씻기기</button>
+                    <button class="action-btn" data-action="play"><i class="fas fa-gamepad"></i> 놀아주기</button>
+                </div>
+            </section>
+
+            <section id="quest-section" class="hidden-section">
+                <h2>오늘의 퀘스트</h2>
+                <div class="quest-list" id="quest-list"></div>
+            </section>
+
+            <section id="feed-section" class="hidden-section">
+                <h2>모두의 인증</h2>
+                <div id="feed-container" class="feed-list"></div>
+            </section>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-target="pet-section">
+                <i class="fas fa-home"></i> <span>홈</span>
+            </button>
+            <button class="nav-btn" data-target="quest-section">
+                <i class="fas fa-clipboard-list"></i> <span>퀘스트</span>
+            </button>
+            <button class="nav-btn" data-target="feed-section">
+                <i class="fas fa-camera-retro"></i> <span>피드</span>
+            </button>
+        </nav>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initAuth } from './js/auth.js';
+        import { initPet } from './js/pet.js';
+        import { initQuest } from './js/quest.js';
+        import { initFeed } from './js/feed.js';
+        import { initAdmin } from './js/admin.js';
+
+        async function initApp() {
+            const isAuth = await initAuth();
+            if (isAuth) {
+                initPet();
+                initQuest();
+                initFeed();
+                initAdmin();
+
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const targetId = btn.getAttribute('data-target');
+                        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        document.querySelectorAll('section').forEach(sec => {
+                            if (sec.id === targetId) {
+                                sec.classList.remove('hidden-section');
+                                sec.classList.add('active-section');
+                            } else {
+                                sec.classList.add('hidden-section');
+                                sec.classList.remove('active-section');
+                            }
+                        });
+                    });
+                });
+
+                document.querySelector('.close-modal').addEventListener('click', () => {
+                    document.getElementById('modal-overlay').classList.add('hidden');
+                });
+            }
+        }
+        initApp();
+    </script>
+</body>
+</html>
 /* 앱 전체 컨테이너 */
 .app-container {
     width: 100%;
@@ -199,3 +339,4 @@ body {
 /* 애니메이션 */
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
