@@ -1,21 +1,21 @@
-// [수정됨] 브라우저에서 바로 돌아가는 CDN 방식입니다.
+// ✅ 1. 브라우저에서 바로 작동하는 주소(CDN)로 연결했습니다.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, query, where, getDocs, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, query, where, getDocs, addDoc, deleteDoc, orderBy, limit, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ✅ 2. 방금 만드신 새 프로젝트(dama-ec569)의 설정값입니다.
 const firebaseConfig = {
-    // ⚠️ 주의: GitHub 경고 메일을 받으셨다면 이 키는 이미 정지되었을 확률이 99%입니다.
-    // 새 프로젝트를 만들어서 받은 '새 키'를 여기에 넣어야 확실하게 작동합니다.
-    apiKey: "AIzaSyDi5sKSc7I5gOari3jeK0gfoKCmRxTYSfY", 
-    authDomain: "damago-f95d8.firebaseapp.com",
-    projectId: "damago-f95d8",
-    storageBucket: "damago-f95d8.firebasestorage.app",
-    messagingSenderId: "281460158600",
-    appId: "1:281460158600:web:127fafefd9a62ffb282f3d"
+  apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E",
+  authDomain: "dama-ec569.firebaseapp.com",
+  projectId: "dama-ec569",
+  storageBucket: "dama-ec569.firebasestorage.app",
+  messagingSenderId: "328651666527",
+  appId: "1:328651666527:web:4cccf725a6ef061e2b97ea",
+  measurementId: "G-XMVX5EZ1SL"
 };
 
-// Initialize Firebase
+// ✅ 3. Firebase 실행 및 데이터베이스 연결
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Export
-export { db, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, query, where, getDocs, addDoc, deleteDoc };
+// ✅ 4. 다른 파일(pet.js 등)에서 쓸 수 있도록 내보내기
+export { db, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, query, where, getDocs, addDoc, deleteDoc, orderBy, limit, arrayUnion, arrayRemove };
