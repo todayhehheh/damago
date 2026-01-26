@@ -1,449 +1,73 @@
-:root {
-    --primary-color: #FF9F1C;
-    --secondary-color: #2EC4B6;
-    --bg-color: #F7F9FC;
-    --text-color: #333;
-    --card-bg: #FFFFFF;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --nav-height: 60px;
-}
+/* 기본 설정 */
+:root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --card-bg: #fff; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; }
+body { background: #ddd; display: flex; justify-content: center; min-height: 100vh; }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    -webkit-tap-highlight-color: transparent;
-}
+/* 앱 컨테이너 (모바일 뷰) */
+.app-container { width: 100%; max-width: 450px; background: var(--bg); position: relative; display: flex; flex-direction: column; height: 100vh; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
 
-body {
-    background-color: #e0e5ec;
-    display: flex;
-    justify-content: center;
-    height: 100vh;
-    overflow: hidden;
-}
+/* 헤더 */
+.app-header { height: 60px; background: white; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 10; }
+.user-info { font-weight: bold; font-size: 1rem; display: flex; gap: 10px; align-items: center; width: 100%; justify-content: space-between; }
+.coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; }
 
-/* Mobile Container */
-.app-container {
-    width: 100%;
-    max-width: 420px;
-    height: 100%;
-    background-color: var(--bg-color);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-}
+/* 메인 영역 */
+#main-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
+.section-header { margin-bottom: 15px; }
+.section-header h2 { font-size: 1.2rem; }
+.section-header p { font-size: 0.8rem; color: #666; }
 
-/* Header */
-.app-header {
-    height: 60px;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--card-bg);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    z-index: 10;
-}
+/* 펫 섹션 */
+.pet-container { text-align: center; margin: 20px 0; position: relative; }
+.pet-character { font-size: 6rem; margin: 20px 0; animation: bounce 2s infinite; }
+.speech-bubble { background: #333; color: white; padding: 8px 15px; border-radius: 15px; display: inline-block; font-size: 0.85rem; }
+.pet-level-badge { background: var(--secondary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; display: inline-block; }
 
-.user-info {
-    font-weight: bold;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-}
+/* 게이지바 */
+.status-bars { background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+.status-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.progress-bar-bg { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--primary); transition: width 0.3s; }
 
-.coin-display {
-    color: #f1c40f;
-    background: #fff8e1;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.9em;
-}
+/* 버튼들 */
+.interaction-menu { display: flex; gap: 10px; justify-content: center; }
+.action-btn { flex: 1; background: white; border: none; padding: 15px 5px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.action-btn:active { transform: scale(0.95); background: #f9f9f9; }
+.action-btn i { font-size: 1.2rem; color: var(--primary); }
+.action-btn small { font-size: 0.7rem; color: #999; }
 
-/* Main Content */
-#main-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    padding-bottom: calc(var(--nav-height) + 20px);
-    /* Space for nav */
-}
+/* 퀘스트 카드 */
+.quest-list { display: flex; flex-direction: column; gap: 10px; }
+.quest-card { background: white; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.quest-tag { font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
+.tag-일일 { background: #e3f2fd; color: #2196f3; }
+.tag-메인 { background: #fff3e0; color: #ff9800; }
+.quest-info h3 { font-size: 0.95rem; margin-bottom: 3px; }
 
-.hidden-section {
-    display: none;
-}
+/* 피드 */
+.feed-card { background: white; border-radius: 10px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.feed-header { padding: 10px; font-size: 0.85rem; color: #555; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; }
+.feed-img-wrapper { width: 100%; height: 250px; background: #eee; }
+.feed-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.feed-footer { padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+.like-btn { border: none; background: none; color: #ccc; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+.like-btn.liked { color: #e91e63; }
 
-.active-section {
-    animation: fadeIn 0.3s ease-in-out;
-}
+/* 하단 네비게이션 */
+.bottom-nav { height: 60px; background: white; display: flex; border-top: 1px solid #eee; position: absolute; bottom: 0; width: 100%; }
+.nav-btn { flex: 1; border: none; background: none; color: #bbb; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; }
+.nav-btn.active { color: var(--secondary); font-weight: bold; }
 
-/* Pet Section */
-.pet-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 30px;
-    margin-bottom: 30px;
-    position: relative;
-}
+/* 모달 및 유틸 */
+.hidden-section { display: none; }
+.active-section { display: block; animation: fadeIn 0.3s; }
+.modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-content { background: white; width: 100%; max-width: 350px; padding: 20px; border-radius: 15px; position: relative; max-height: 80vh; overflow-y: auto; }
+.close-modal { position: absolute; top:15px; right:15px; border:none; background:none; font-size: 1.5rem; cursor:pointer; }
+.btn-primary { width:100%; padding:12px; background:var(--secondary); color:white; border:none; border-radius:8px; font-size:1rem; cursor:pointer; margin-top:10px; }
+.btn-claim { background: linear-gradient(45deg, #ff9800, #ff5722); animation: bounce 1s infinite; }
 
-.speech-bubble {
-    background: #333;
-    color: #fff;
-    padding: 10px 15px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    position: relative;
-    font-size: 0.9rem;
-    animation: bounce 2s infinite;
-}
-
-.speech-bubble::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 10px 10px 0;
-    border-style: solid;
-    border-color: #333 transparent transparent transparent;
-}
-
-.pet-character {
-    font-size: 8rem;
-    transition: transform 0.2s;
-}
-
-.pet-character:active {
-    transform: scale(0.9);
-}
-
-/* Status Bars */
-.status-bars {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-    margin-bottom: 20px;
-}
-
-.status-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    gap: 10px;
-}
-
-.status-item i {
-    width: 25px;
-    color: #888;
-}
-
-.progress-bar-bg {
-    flex: 1;
-    height: 10px;
-    background: #eee;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    height: 100%;
-    background: var(--secondary-color);
-    transition: width 0.5s ease;
-}
-
-/* Interaction Menu */
-.interaction-menu {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-}
-
-.action-btn {
-    background: var(--card-bg);
-    border: none;
-    padding: 15px;
-    border-radius: 15px;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    width: 80px;
-    cursor: pointer;
-    transition: transform 0.1s;
-}
-
-.action-btn:active {
-    transform: scale(0.95);
-    background: #f0f0f0;
-}
-
-.action-btn i {
-    font-size: 1.5rem;
-    color: var(--primary-color);
-}
-
-/* Quest Cards */
-.quest-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.quest-card {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: var(--shadow);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.1s;
-}
-
-.quest-card:active {
-    transform: scale(0.98);
-}
-
-.quest-info h3 {
-    font-size: 1rem;
-    margin-bottom: 5px;
-}
-
-.quest-reward {
-    color: #f1c40f;
-    font-weight: bold;
-    font-size: 0.9rem;
-}
-
-.quest-status {
-    font-size: 1.2rem;
-    color: #ccc;
-}
-
-.quest-status.completed {
-    color: var(--secondary-color);
-}
-
-/* Bottom Nav */
-.bottom-nav {
-    height: var(--nav-height);
-    background: var(--card-bg);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid #eee;
-}
-
-.nav-btn {
-    background: none;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #aaa;
-    gap: 4px;
-    cursor: pointer;
-    width: 50%;
-}
-
-.nav-btn.active {
-    color: var(--primary-color);
-}
-
-/* Modal */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 100;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background: var(--card-bg);
-    width: 100%;
-    max-width: 380px;
-    border-radius: 20px;
-    padding: 25px;
-    position: relative;
-    max-height: 80vh;
-    overflow-y: auto;
-    animation: slideUp 0.3s ease;
-}
-
-.close-modal {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* Utils */
-.btn-primary {
-    width: 100%;
-    padding: 12px;
-    background: var(--secondary-color);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    margin-top: 15px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.btn-primary:active {
-    opacity: 0.9;
-}
-
-.btn-primary:disabled {
-    background: #ccc;
-}
-
-.btn-claim {
-    background: linear-gradient(45deg, #f1c40f, #e67e22);
-}
-
-/* Animation Keys */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-@keyframes bounce {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-5px);
-    }
-
-}
-/* [style.css] 맨 아래에 추가 */
-
-/* Feed Styles */
-.feed-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding-bottom: 20px;
-}
-
-.feed-card {
-    background: white;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-.feed-header {
-    padding: 10px 15px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    color: #666;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.feed-img-wrapper {
-    width: 100%;
-    height: 300px; /* 사진 크기 고정 */
-    background: #f9f9f9;
-}
-
-.feed-img-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* 꽉 차게 */
-}
-
-.feed-footer {
-    padding: 10px 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.feed-mission-badge {
-    background: #e1f5fe;
-    color: #0288d1;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: bold;
-}
-
-.like-btn {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    color: #ccc;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: transform 0.2s;
-}
-
-.like-btn:active {
-    transform: scale(1.2);
-}
-
-.like-btn.active {
-    color: #e91e63; /* 하트 핑크색 */
-}
-
-/* [style.css] 파일 맨 아래에 추가 */
-
-/* Floating Text Animation */
-@keyframes floatUp {
-    0% {
-        opacity: 1;
-        transform: translate(-50%, -50%);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -150%); /* 위로 둥둥 떠오름 */
-    }
-}
+/* 애니메이션 */
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes floatUp { 0% { opacity:1; transform: translate(-50%, -50%); } 100% { opacity:0; transform: translate(-50%, -150%); } }
