@@ -54,7 +54,24 @@ body { background: #ddd; display: flex; justify-content: center; min-height: 100
 .like-btn.liked { color: #e91e63; }
 
 /* 하단 네비게이션 */
-.bottom-nav { height: 60px; background: white; display: flex; border-top: 1px solid #eee; position: absolute; bottom: 0; width: 100%; }
+/* style.css 파일에서 .bottom-nav 부분을 찾아 수정 */
+.bottom-nav {
+    /* 기존 코드 유지 */
+    height: var(--nav-height);
+    background: var(--card-bg);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #eee;
+    
+    /* 아래 내용 추가 */
+    position: fixed; /* 고정 위치 */
+    bottom: 0;
+    width: 100%;
+    max-width: 420px;
+    z-index: 1000; /* 다른 요소보다 위에 오게 함 */
+    padding-bottom: env(safe-area-inset-bottom); /* 아이폰 등에서 잘림 방지 */
+}
 .nav-btn { flex: 1; border: none; background: none; color: #bbb; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; }
 .nav-btn.active { color: var(--secondary); font-weight: bold; }
 
@@ -71,3 +88,4 @@ body { background: #ddd; display: flex; justify-content: center; min-height: 100
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes floatUp { 0% { opacity:1; transform: translate(-50%, -50%); } 100% { opacity:0; transform: translate(-50%, -150%); } }
+
