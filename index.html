@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    <title>다마고치 퀘스트 (3단계: 퀘스트 인증)</title>
+    <title>다마고치 퀘스트 (3단계: 퀘스트 인증 완료)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -56,6 +56,10 @@
             display: inline-block; position: relative; margin-bottom: 15px;
             animation: bounce 2s infinite;
         }
+        .speech-bubble::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent;
+        }
 
         /* 게이지 & 버튼 */
         .status-bars { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
@@ -69,7 +73,7 @@
         }
         .action-btn i { font-size: 1.5rem; color: var(--primary); margin-bottom: 5px; }
 
-        /* ★ 퀘스트 카드 스타일 추가 ★ */
+        /* 퀘스트 카드 */
         .quest-card {
             background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer;
@@ -92,7 +96,7 @@
         .nav-btn.active { color: var(--secondary); font-weight: bold; }
         .nav-btn i { font-size: 1.4rem; margin-bottom: 3px; }
 
-        /* ★ 모달창 (팝업) 스타일 ★ */
+        /* 모달창 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 2000;
@@ -140,28 +144,27 @@
                 </div>
 
                 <div class="interaction-menu">
-                    <button class="action-btn" onclick="app.action('feed')"><i class="fas fa-hamburger"></i>밥주기</button>
-                    <button class="action-btn" onclick="app.action('clean')"><i class="fas fa-soap"></i>씻기기</button>
-                    <button class="action-btn" onclick="app.action('play')"><i class="fas fa-gamepad"></i>놀기</button>
+                    <button class="action-btn" onclick="window.app.action('feed')"><i class="fas fa-hamburger"></i>밥주기</button>
+                    <button class="action-btn" onclick="window.app.action('clean')"><i class="fas fa-soap"></i>씻기기</button>
+                    <button class="action-btn" onclick="window.app.action('play')"><i class="fas fa-gamepad"></i>놀기</button>
                 </div>
             </section>
 
             <section id="quest-section" class="hidden-section">
                 <h2 style="margin-bottom:15px;">오늘의 퀘스트</h2>
-                <div id="quest-list" style="display:flex; flex-direction:column; gap:10px;">
-                    </div>
+                <div id="quest-list" style="display:flex; flex-direction:column; gap:10px;"></div>
             </section>
         </main>
 
         <nav class="bottom-nav">
-            <button class="nav-btn active" onclick="app.switchTab('pet-section', this)"><i class="fas fa-home"></i>홈</button>
-            <button class="nav-btn" onclick="app.switchTab('quest-section', this)"><i class="fas fa-list"></i>퀘스트</button>
+            <button class="nav-btn active" onclick="window.app.switchTab('pet-section', this)"><i class="fas fa-home"></i>홈</button>
+            <button class="nav-btn" onclick="window.app.switchTab('quest-section', this)"><i class="fas fa-list"></i>퀘스트</button>
         </nav>
     </div>
 
     <div id="modal-overlay" class="modal-overlay hidden" style="display:none;">
         <div class="modal-content">
-            <button class="close-modal" onclick="app.closeModal()">&times;</button>
+            <button class="close-modal" onclick="window.app.closeModal()">&times;</button>
             <h2 id="m-title" style="margin-bottom:10px;">퀘스트 제목</h2>
             <p id="m-desc" style="color:#666; margin-bottom:20px;">설명</p>
             
@@ -173,9 +176,8 @@
                 <img id="preview-img" style="width:100%; border-radius:10px; display:none;">
             </div>
             
-            <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="app.handleFileSelect(this)">
-
-            <button id="claim-btn" class="btn-primary" disabled onclick="app.claimReward()">보상 받기</button>
+            <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="window.app.handleFileSelect(this)">
+            <button id="claim-btn" class="btn-primary" disabled onclick="window.app.claimReward()">보상 받기</button>
         </div>
     </div>
 
@@ -193,11 +195,12 @@
             measurementId: "G-XMVX5EZ1SL"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // ★ 핵심 수정: 변수 이름을 firebaseApp으로 바꿔서 충돌 해결!
+        const firebaseApp = initializeApp(firebaseConfig);
+        const db = getFirestore(firebaseApp);
 
         let currentUser = null;
-        let currentQuest = null; // 현재 선택한 퀘스트
+        let currentQuest = null;
         let userId = new URLSearchParams(window.location.search).get('id');
         if (!userId) userId = "test_user";
 
@@ -209,15 +212,14 @@
         };
         let isPetBusy = false; 
 
-        // ★ 퀘스트 데이터 (나중엔 관리자 페이지에서 추가하게 될 겁니다)
         const QUEST_DATA = [
             { id: 1, type: '일일', title: '💧 물 한 컵 마시기', desc: '건강을 위해 물을 마시고 빈 컵을 찍어주세요!', reward: 50 },
             { id: 2, type: '일일', title: '🛏️ 이불 정리하기', desc: '깔끔한 아침! 정리된 이불을 인증해주세요.', reward: 100 },
             { id: 3, type: '서브', title: '🚶 동네 산책하기', desc: '가볍게 동네 한 바퀴! 풍경 사진을 올려주세요.', reward: 200 }
         ];
 
+        // 게임 로직 (window.app)
         window.app = {
-            // 탭 전환
             switchTab: (targetId, btn) => {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -227,7 +229,6 @@
                 });
             },
 
-            // 펫 행동
             action: async (type) => {
                 if (!currentUser) return alert("로딩 중입니다!");
                 if (isPetBusy) return;
@@ -237,34 +238,26 @@
                 let reactionImg = IMAGES.normal;
                 let reactionText = "";
 
-                if(type === 'feed') {
-                    currentUser.pet.hunger = Math.min(100, currentUser.pet.hunger + 20);
-                    reactionImg = IMAGES.eat; reactionText = "냠냠! 맛있다!";
-                }
-                if(type === 'clean') {
-                    currentUser.pet.cleanliness = Math.min(100, currentUser.pet.cleanliness + 20);
-                    reactionImg = IMAGES.clean; reactionText = "아이 개운해!";
-                }
-                if(type === 'play') {
-                    currentUser.pet.fun = Math.min(100, currentUser.pet.fun + 20);
-                    reactionImg = IMAGES.play; reactionText = "헤헤 재밌다!";
-                }
+                if(type === 'feed') { currentUser.pet.hunger = Math.min(100, currentUser.pet.hunger + 20); reactionImg = IMAGES.eat; reactionText = "냠냠! 맛있다!"; }
+                if(type === 'clean') { currentUser.pet.cleanliness = Math.min(100, currentUser.pet.cleanliness + 20); reactionImg = IMAGES.clean; reactionText = "아이 개운해!"; }
+                if(type === 'play') { currentUser.pet.fun = Math.min(100, currentUser.pet.fun + 20); reactionImg = IMAGES.play; reactionText = "헤헤 재밌다!"; }
 
                 isPetBusy = true;
                 updateUI();
                 
                 const imgEl = document.getElementById('pet-img');
-                const speechEl = document.getElementById('pet-speech');
-                imgEl.src = reactionImg; speechEl.innerText = reactionText;
+                imgEl.src = reactionImg; 
+                document.getElementById('pet-speech').innerText = reactionText;
 
                 setTimeout(() => {
-                    imgEl.src = IMAGES.normal; speechEl.innerText = "심심해~"; isPetBusy = false;
+                    imgEl.src = IMAGES.normal; 
+                    document.getElementById('pet-speech').innerText = "심심해~"; 
+                    isPetBusy = false;
                 }, 2000); 
 
                 await updateDoc(doc(db, "users", userId), { coins: currentUser.coins, pet: currentUser.pet });
             },
 
-            // ★ 퀘스트 모달 열기
             openQuestModal: (questId) => {
                 const quest = QUEST_DATA.find(q => q.id === questId);
                 currentQuest = quest;
@@ -272,17 +265,15 @@
                 document.getElementById('m-title').innerText = quest.title;
                 document.getElementById('m-desc').innerText = quest.desc;
                 document.getElementById('claim-btn').innerText = `${quest.reward} 코인 받기`;
-                document.getElementById('claim-btn').disabled = true; // 사진 올리기 전엔 비활성화
+                document.getElementById('claim-btn').disabled = true; 
                 
-                // 미리보기 초기화
                 document.getElementById('preview-area').style.display = 'block';
                 document.getElementById('preview-img').style.display = 'none';
-                document.getElementById('file-input').value = ''; // 파일 비우기
+                document.getElementById('file-input').value = ''; 
 
                 document.getElementById('modal-overlay').style.display = 'flex';
             },
 
-            // ★ 파일 선택 시 미리보기 처리
             handleFileSelect: (input) => {
                 if (input.files && input.files[0]) {
                     const reader = new FileReader();
@@ -292,27 +283,19 @@
                         img.src = e.target.result;
                         img.style.display = 'block';
                         
-                        // 버튼 활성화
                         const btn = document.getElementById('claim-btn');
                         btn.disabled = false;
-                        btn.style.backgroundColor = '#FF9F1C'; // 활성화 색상
+                        btn.style.backgroundColor = '#FF9F1C'; 
                     };
                     reader.readAsDataURL(input.files[0]);
                 }
             },
 
-            // ★ 보상 받기
             claimReward: async () => {
                 if(!currentQuest) return;
-
-                // 1. 코인 지급
                 currentUser.coins += currentQuest.reward;
-                
-                // 2. 모달 닫기 및 알림
-                app.closeModal();
+                window.app.closeModal();
                 alert(`🎉 인증 완료! ${currentQuest.reward} 코인을 받았습니다.`);
-                
-                // 3. UI 갱신 및 저장
                 updateUI();
                 await updateDoc(doc(db, "users", userId), { coins: currentUser.coins });
             },
@@ -338,7 +321,7 @@
                     await setDoc(userRef, currentUser);
                 }
                 updateUI();
-                renderQuests(); // 퀘스트 목록 그리기
+                renderQuests();
 
             } catch (error) {
                 console.error(error);
@@ -360,7 +343,8 @@
                     </div>
                     <span class="quest-reward">💰 ${q.reward}</span>
                 `;
-                div.onclick = () => app.openQuestModal(q.id);
+                // ★ 여기가 문제였던 곳! app -> window.app으로 확실하게 지정
+                div.onclick = () => window.app.openQuestModal(q.id);
                 list.appendChild(div);
             });
         }
