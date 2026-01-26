@@ -3,55 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="google" content="notranslate">
-    <title>다마고치 퀘스트</title>
+    <title>다마고치 퀘스트 (최종)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* CSS는 기존과 동일하게 유지 */
-        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; }
+        /* --- [기본 스타일] --- */
+        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; --done: #4cd137; }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; -webkit-user-select: none !important; user-select: none !important; -webkit-tap-highlight-color: transparent !important; touch-action: manipulation; }
+        input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }
+
         body { background: #ddd; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
+        
         .app-container { width: 100%; max-width: 420px; height: 100%; background: #F7F9FC; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+
+        /* 헤더 */
         .app-header { height: 60px; padding: 0 20px; background: white; z-index: 10; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
+
+        /* 메인 콘텐츠 */
         #main-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
         .hidden-section { display: none !important; }
         .active-section { display: block !important; animation: fadeIn 0.3s; }
+
+        /* 펫 영역 */
         .pet-container { text-align: center; margin: 20px 0; height: 280px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #pet-img { width: 220px; height: 220px; object-fit: contain; transition: transform 0.1s; cursor: pointer; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); }
         #pet-img:active { transform: scale(0.95); }
-        .speech-bubble { background: #333; color: white; padding: 10px 15px; border-radius: 15px; display: inline-block; position: relative; margin-bottom: 15px; animation: bounce 2s infinite; }
+        
+        .speech-bubble { background: #333; color: white; padding: 10px 15px; border-radius: 15px; display: inline-block; position: relative; margin-bottom: 15px; animation: bounce 2s infinite; min-width: 120px; }
+        .speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent; }
+
+        /* 레벨 UI */
         .level-info { width: 100%; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
         .level-badge { background: #333; color: #fff; padding: 5px 10px; border-radius: 10px; font-weight: bold; font-size: 0.8rem; }
         .exp-bar-bg { flex: 1; height: 12px; background: #ddd; border-radius: 6px; overflow: hidden; position: relative; }
         .exp-bar { height: 100%; background: linear-gradient(90deg, #FF9F1C, #FFD700); width: 0%; transition: width 0.5s; }
         .exp-text { position: absolute; width: 100%; text-align: center; font-size: 0.6rem; color: #555; line-height: 12px; top: 0; }
+
+        /* 상태바 */
         .status-bars { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
         .progress-bar-bg { background: #eee; height: 10px; border-radius: 5px; overflow: hidden; margin-top:5px; }
         .progress-bar { height: 100%; background: var(--secondary); width: 50%; transition: width 0.3s; }
         .interaction-menu { display: flex; gap: 10px; }
         .action-btn { flex: 1; background: white; border: none; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .action-btn i { font-size: 1.5rem; color: var(--primary); margin-bottom: 5px; }
-        .quest-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+
+        /* 퀘스트 카드 */
+        .quest-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; display: flex; justify-content: space-between; align-items: center; position: relative; }
         .quest-tag { font-size: 0.8rem; padding: 3px 8px; border-radius: 5px; margin-right: 5px; }
-        .tag-daily { background: #E3F2FD; color: #2196F3; } /* 일일 파란색 */
-        .tag-special { background: #FFF3E0; color: #FF9800; } /* 특별 주황색 */
+        .tag-daily { background: #E3F2FD; color: #2196F3; } 
+        .tag-special { background: #FFF3E0; color: #FF9800; } 
+        
+        /* 보상 받기 버튼 */
+        .claim-btn-small { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; cursor: pointer; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* 피드 */
         .feed-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .feed-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .feed-img { width: 100%; height: 250px; object-fit: cover; border-radius: 10px; background: #eee; }
         .feed-footer { display: flex; justify-content: space-between; margin-top: 10px; }
         .like-btn.liked { color: var(--heart); transform: scale(1.1); }
+
+        /* 하단 메뉴 */
         .bottom-nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; height: 70px; background: rgba(255,255,255,0.95); border-radius: 35px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-around; align-items: center; z-index: 900; }
         .nav-btn { background: none; border: none; color: #ccc; flex: 1; display: flex; flex-direction: column; align-items: center; }
         .nav-btn.active { color: var(--secondary); font-weight: bold; }
         .nav-btn i { font-size: 1.4rem; margin-bottom: 3px; }
+
+        /* 예쁜 모달창 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: white; width: 100%; max-width: 350px; border-radius: 20px; padding: 25px; position: relative; max-height: 80vh; overflow-y: auto; text-align: center; }
-        .close-modal { position: absolute; top: 15px; right: 20px; border: none; background: none; font-size: 2rem; }
-        .btn-primary { width: 100%; padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; }
-        .btn-primary:disabled { background: #ccc; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .modal-content { background: white; width: 100%; max-width: 350px; border-radius: 20px; padding: 25px; position: relative; max-height: 80vh; overflow-y: auto; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .close-modal { position: absolute; top: 15px; right: 20px; border: none; background: none; font-size: 2rem; cursor: pointer; color: #888;}
+        .btn-primary { width: 100%; padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; cursor: pointer; }
+        .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* ★ 토스트 메시지 (Alert 대체) ★ */
+        #toast-container { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 380px; }
+        .toast-msg { background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 30px; text-align: center; font-size: 0.9rem; animation: fadeUp 0.3s ease-out; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .toast-fadeout { opacity: 0; transition: opacity 0.5s; }
     </style>
 </head>
 <body>
@@ -60,6 +91,7 @@
             <span id="user-nickname">로딩중...</span>
             <span class="coin-display">💰 <span id="user-coins">0</span></span>
         </header>
+
         <main id="main-content">
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
@@ -81,15 +113,18 @@
                     <button class="action-btn" onclick="window.app.action('play')"><i class="fas fa-gamepad"></i>놀기</button>
                 </div>
             </section>
+            
             <section id="quest-section" class="hidden-section">
                 <h2 style="margin-bottom:15px;">오늘의 퀘스트</h2>
                 <div id="quest-list" style="display:flex; flex-direction:column; gap:10px;"></div>
             </section>
+            
             <section id="feed-section" class="hidden-section">
                 <h2 style="margin-bottom:15px;">우리 반 갤러리</h2>
                 <div id="feed-list"></div>
             </section>
         </main>
+
         <nav class="bottom-nav">
             <button class="nav-btn active" onclick="window.app.switchTab('pet-section', this)"><i class="fas fa-home"></i>홈</button>
             <button class="nav-btn" onclick="window.app.switchTab('quest-section', this)"><i class="fas fa-list"></i>퀘스트</button>
@@ -97,17 +132,28 @@
         </nav>
     </div>
 
+    <div id="toast-container"></div>
+
     <div id="modal-overlay" class="modal-overlay hidden" style="display:none;">
         <div class="modal-content">
             <button class="close-modal" onclick="window.app.closeModal()">&times;</button>
             <h2 id="m-title">퀘스트 인증</h2>
-            <p id="m-desc" style="color:#666;">설명</p>
-            <div id="photo-area" style="background:#f5f5f5; padding:20px; border-radius:10px;" onclick="document.getElementById('file-input').click()">
+            <p id="m-desc" style="color:#666; margin-bottom:20px;">설명</p>
+            <div id="photo-area" style="background:#f5f5f5; padding:20px; border-radius:10px; cursor:pointer;" onclick="document.getElementById('file-input').click()">
                 <div id="preview-text"><i class="fas fa-camera" style="font-size:2rem; color:#ccc;"></i><br>터치하여 사진 업로드</div>
                 <img id="preview-img" style="width:100%; display:none; border-radius:10px;">
             </div>
             <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="window.app.handleFile(this)">
-            <button id="submit-btn" class="btn-primary" disabled onclick="window.app.submitQuest()">인증 제출하기</button>
+            <button id="submit-btn" class="btn-primary" disabled onclick="window.app.submitQuest()">인증샷 제출하기</button>
+        </div>
+    </div>
+
+    <div id="reward-modal" class="modal-overlay hidden" style="display:none;">
+        <div class="modal-content" style="text-align:center;">
+            <i class="fas fa-gift" style="font-size:3rem; color:#FF9F1C; margin-bottom:10px;"></i>
+            <h2>보상 획득!</h2>
+            <p id="reward-msg" style="font-size:1.1rem; margin:15px 0;">50 코인을 받았습니다.</p>
+            <button class="btn-primary" onclick="document.getElementById('reward-modal').style.display='none'">확인</button>
         </div>
     </div>
 
@@ -121,6 +167,7 @@
         let user = null;
         let curQuestId = null;
         let uploadImg = null;
+        let globalDbQuests = []; // 퀘스트 목록 저장용
 
         const DAILY = [
             { id: 'daily_photo', title: '📷 오늘의 인증샷', desc: '오늘 활동 사진 올리기', reward: 50, type: '일일' },
@@ -128,19 +175,40 @@
         ];
 
         window.app = {
-            switchTab: (id, btn) => {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                document.querySelectorAll('section').forEach(s => s.classList.toggle('hidden-section', s.id !== id));
-                document.getElementById(id).classList.add('active-section');
+            // ★ 토스트 메시지 띄우기 (Alert 대체) ★
+            showToast: (msg) => {
+                const container = document.getElementById('toast-container');
+                const div = document.createElement('div');
+                div.className = 'toast-msg';
+                div.innerText = msg;
+                container.appendChild(div);
+                setTimeout(() => {
+                    div.classList.add('toast-fadeout');
+                    setTimeout(() => div.remove(), 500);
+                }, 2000);
             },
+            
+            // ★ 펫 행동 (말풍선 활용) ★
             action: async (type) => {
                 if(!user) return;
-                if(type==='feed' && user.pet.hunger>=100) return alert("배불러요!");
-                if(type==='clean' && user.pet.cleanliness>=100) return alert("깨끗해요!");
-                if(type==='play' && user.pet.fun>=100) return alert("신나요!");
-                if(user.coins < 10) return alert("코인 부족!");
                 
+                // 1. 배부름 체크 -> 말풍선으로 대답
+                if(type==='feed' && user.pet.hunger>=100) {
+                    setPetSpeech("배불러요! 그만 먹을래!"); 
+                    return; 
+                }
+                if(type==='clean' && user.pet.cleanliness>=100) {
+                    setPetSpeech("이미 반짝반짝해요!"); 
+                    return;
+                }
+                if(type==='play' && user.pet.fun>=100) {
+                    setPetSpeech("지칠 때까지 놀았어요!"); 
+                    return;
+                }
+                
+                if(user.coins < 10) return window.app.showToast("코인이 부족해요! (10원 필요)");
+
+                // 2. 정상 실행
                 user.coins -= 10;
                 addExp(5);
                 if(type==='feed') user.pet.hunger = Math.min(100, user.pet.hunger+20);
@@ -148,8 +216,18 @@
                 if(type==='play') user.pet.fun = Math.min(100, user.pet.fun+20);
                 
                 updateUI();
+                
+                // 리액션
+                const img = document.getElementById('pet-img');
+                if(type==='feed') { img.src = "images/pet_eat.png"; setPetSpeech("냠냠! 맛있어요!"); }
+                if(type==='clean') { img.src = "images/pet_bath.png"; setPetSpeech("개운해요!"); }
+                if(type==='play') { img.src = "images/pet_play.png"; setPetSpeech("신난다!"); }
+
+                setTimeout(() => { updatePetImage(); setPetSpeech("심심해~"); }, 2000);
                 await saveUser();
             },
+
+            // 모달 열기
             openQuestModal: (id, title, desc) => {
                 curQuestId = id;
                 document.getElementById('m-title').innerText = title;
@@ -160,6 +238,8 @@
                 document.getElementById('submit-btn').disabled = true;
                 uploadImg = null;
             },
+            
+            // 파일 선택
             handleFile: (input) => {
                 if(input.files[0]) {
                     const reader = new FileReader();
@@ -180,48 +260,88 @@
                     reader.readAsDataURL(input.files[0]);
                 }
             },
+
+            // 1. 제출 (보상 수령 전)
             submitQuest: async () => {
+                // done: true, claimed: false 로 설정
                 user.questLog[curQuestId] = { done: true, claimed: false };
                 if(uploadImg) await addDoc(collection(db, "posts"), { userId, nickname: user.nickname, questTitle: "퀘스트 인증", image: uploadImg, likes: [], createdAt: Date.now() });
-                alert("제출 완료! 보상 받기 버튼을 눌러주세요.");
+                
                 window.app.closeModal();
-                updateQuestList();
+                window.app.showToast("제출 완료! '보상 받기' 버튼을 누르세요.");
+                
+                // ★ 즉시 목록 갱신 (보상 버튼 보이게) ★
+                renderAllQuests(globalDbQuests);
                 await saveUser();
             },
+
+            // 2. 보상 수령 (버튼 클릭)
             claim: async (id, reward) => {
                 user.coins += reward;
-                user.questLog[id].claimed = true;
+                user.questLog[id].claimed = true; // 최종 완료
                 addExp(20);
-                alert(`${reward}코인 획득!`);
-                updateQuestList();
+                
+                // 예쁜 모달로 보상 알림
+                document.getElementById('reward-msg').innerText = `${reward}코인과 경험치 20을 얻었습니다!`;
+                document.getElementById('reward-modal').style.display = 'flex';
+                
+                renderAllQuests(globalDbQuests); // 버튼 사라짐
                 await saveUser();
             },
+
             toggleLike: async (pid, likes) => {
                 const ref = doc(db, "posts", pid);
                 if(!likes.includes(userId)) {
                     await updateDoc(ref, { likes: arrayUnion(userId) });
-                    if(!user.questLog['daily_likes']) user.questLog['daily_likes'] = { count: 0 };
+                    
+                    // 좋아요 미션 체크
+                    if(!user.questLog['daily_likes']) user.questLog['daily_likes'] = { count: 0, done: false, claimed: false };
                     user.questLog['daily_likes'].count = (user.questLog['daily_likes'].count || 0) + 1;
-                    if(user.questLog['daily_likes'].count >= 3) {
+                    
+                    if(user.questLog['daily_likes'].count >= 3 && !user.questLog['daily_likes'].done) {
                         user.questLog['daily_likes'].done = true;
-                        alert("좋아요 미션 완료! 보상을 받으세요.");
+                        window.app.showToast("❤️ 좋아요 미션 완료! 보상을 받으세요.");
+                    } else {
+                        // 미완료여도 진행도(1/3) 업데이트를 위해 목록 갱신
+                        window.app.showToast("좋아요 반영됨!");
                     }
+                    // ★ 핵심: 즉시 퀘스트 목록 갱신하여 (1/3) -> (2/3) 보이게 함
+                    renderAllQuests(globalDbQuests);
                     await saveUser();
                 } else {
                     await updateDoc(ref, { likes: arrayRemove(userId) });
                 }
             },
+            
+            switchTab: (id, btn) => {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('section').forEach(s => s.classList.toggle('hidden-section', s.id !== id));
+                document.getElementById(id).classList.add('active-section');
+            },
             closeModal: () => document.getElementById('modal-overlay').style.display = 'none'
         };
+
+        function setPetSpeech(text) {
+            document.getElementById('pet-speech').innerText = text;
+        }
 
         function addExp(n) {
             user.pet.exp = (user.pet.exp || 0) + n;
             if(user.pet.exp >= 100) {
                 user.pet.exp = 0; user.pet.level = (user.pet.level || 1) + 1;
-                alert(`레벨 ${user.pet.level} 달성!`);
+                // 레벨업 알림도 모달로
+                document.getElementById('reward-msg').innerText = `축하합니다! 레벨 ${user.pet.level} 달성!`;
+                document.getElementById('reward-modal').style.display = 'flex';
             }
         }
         async function saveUser() { await updateDoc(doc(db, "users", userId), { coins: user.coins, pet: user.pet, questLog: user.questLog }); }
+        
+        function updatePetImage() {
+            const img = document.getElementById('pet-img');
+            const lv = user.pet.level||1;
+            img.src = lv===1 ? "images/pet_lv1.png" : (lv===2 ? "images/pet_lv2.png" : "images/pet_lv3.png");
+        }
 
         async function init() {
             const snap = await getDoc(doc(db, "users", userId));
@@ -240,19 +360,19 @@
             }
             updateUI();
 
+            // 퀘스트 리스너
             onSnapshot(collection(db, "quests"), (snap) => {
-                const dbQuests = [];
+                globalDbQuests = [];
                 const todayDate = new Date().toDateString();
-                
                 snap.forEach(d => {
                     const q = d.data();
-                    // ★ 핵심: 일일 미션은 오늘 만든 것만 표시! ★
                     if(q.type === '일일' && q.dateString !== todayDate) return;
-                    dbQuests.push({ id: d.id, ...q });
+                    globalDbQuests.push({ id: d.id, ...q });
                 });
-                renderAllQuests(dbQuests);
+                renderAllQuests(globalDbQuests);
             });
 
+            // 피드 리스너
             onSnapshot(collection(db, "posts"), (snap) => {
                 const list = document.getElementById('feed-list'); list.innerHTML = "";
                 const posts = []; snap.forEach(d => posts.push({ id: d.id, ...d.data() }));
@@ -265,26 +385,36 @@
             });
         }
 
+        // ★ 퀘스트 렌더링 (진행도 & 보상버튼 완벽 구현) ★
         function renderAllQuests(dbQuests) {
             const list = document.getElementById('quest-list'); list.innerHTML = "";
             [...DAILY, ...dbQuests].forEach(q => {
                 const log = user.questLog[q.id] || { done: false, claimed: false };
-                if(log.claimed) return;
+                if(log.claimed) return; // 이미 받았으면 숨김
                 
                 const div = document.createElement('div'); div.className = 'quest-card';
                 const tagClass = q.type === '일일' ? 'tag-daily' : 'tag-special';
                 
+                // 1. 완료 상태 (보상 받기 버튼)
                 if(log.done) {
-                    div.innerHTML = `<div><span class="quest-tag" style="background:#4cd137;color:white">완료</span> <b>${q.title}</b></div><button style="background:var(--primary);color:white;border:none;padding:5px 10px;border-radius:15px;" onclick="window.app.claim('${q.id}', ${q.reward})">보상 받기</button>`;
-                } else {
-                    const progress = q.id==='daily_likes' ? `(${log.count||0}/3)` : '';
-                    div.innerHTML = `<div><span class="quest-tag ${tagClass}">${q.type}</span> <b>${q.title}</b> ${progress}</div><b>💰${q.reward}</b>`;
-                    div.onclick = () => q.id==='daily_likes' ? alert("피드에서 좋아요를 누르세요!") : window.app.openQuestModal(q.id, q.title, q.desc);
+                    div.innerHTML = `<div><span class="quest-tag" style="background:#4cd137;color:white">완료</span> <b>${q.title}</b></div><button class="claim-btn-small" onclick="window.app.claim('${q.id}', ${q.reward})">보상 받기</button>`;
+                } 
+                // 2. 진행 중 상태
+                else {
+                    let progressText = "";
+                    if(q.id==='daily_likes') {
+                        const count = (user.questLog['daily_likes'] && user.questLog['daily_likes'].count) || 0;
+                        progressText = `<span style="font-size:0.8rem; color:#FF9F1C;">(${count}/3)</span>`;
+                    }
+                    div.innerHTML = `<div><span class="quest-tag ${tagClass}">${q.type}</span> <b>${q.title}</b> ${progressText}</div><b>💰${q.reward}</b>`;
+                    
+                    // 좋아요 미션은 클릭 시 안내만 (모달 X)
+                    if(q.id==='daily_likes') div.onclick = () => window.app.showToast("피드에서 하트를 눌러보세요!");
+                    else div.onclick = () => window.app.openQuestModal(q.id, q.title, q.desc);
                 }
                 list.appendChild(div);
             });
         }
-        function updateQuestList() { /* 자동 갱신됨 */ }
 
         function updateUI() {
             document.getElementById('user-nickname').innerText = user.nickname;
@@ -295,9 +425,7 @@
             document.getElementById('level-badge').innerText = `Lv.${user.pet.level||1}`;
             document.getElementById('exp-bar').style.width = (user.pet.exp||0)+"%";
             document.getElementById('exp-text').innerText = `EXP ${user.pet.exp||0}/100`;
-            const img = document.getElementById('pet-img');
-            const lv = user.pet.level||1;
-            img.src = lv===1 ? "images/pet_lv1.png" : (lv===2 ? "images/pet_lv2.png" : "images/pet_lv3.png");
+            if(!isPetBusy) updatePetImage();
         }
         init();
     </script>
