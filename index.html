@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    <title>다마고치 퀘스트 (4단계: 관리자 모드)</title>
+    <title>다마고치 퀘스트 (역할 구분)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -18,7 +18,6 @@
             touch-action: manipulation;
         }
         
-        /* 입력창은 글씨 써야 하니까 예외 */
         input, textarea, select {
             -webkit-user-select: text !important;
             user-select: text !important;
@@ -39,8 +38,9 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
-        /* 관리자 버튼 스타일 */
-        .admin-btn { border: none; background: none; font-size: 1.2rem; color: #ccc; cursor: pointer; }
+        
+        /* ★ 관리자 버튼: 기본적으로 숨김 (display: none) ★ */
+        .admin-btn { border: none; background: none; font-size: 1.2rem; color: #ccc; cursor: pointer; display: none; }
 
         /* 메인 콘텐츠 */
         #main-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
@@ -92,7 +92,7 @@
         .delete-btn {
             position: absolute; right: -10px; top: -10px;
             background: red; color: white; border: none; width: 25px; height: 25px;
-            border-radius: 50%; cursor: pointer; display: none; /* 평소엔 숨김 */
+            border-radius: 50%; cursor: pointer; display: none; /* 기본 숨김 */
         }
 
         /* 하단 메뉴 */
@@ -127,7 +127,6 @@
         }
         .btn-primary:disabled { background: #ccc; }
         
-        /* 관리자 폼 스타일 */
         .admin-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; }
 
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
@@ -139,13 +138,13 @@
     <div class="app-container">
         <header class="app-header">
             <span class="coin-display">💰 <span id="user-coins">0</span></span>
-            <button class="admin-btn" onclick="window.app.openAdminModal()"><i class="fas fa-cog"></i></button>
+            <button class="admin-btn" id="admin-gear-btn" onclick="window.app.openAdminModal()"><i class="fas fa-cog"></i></button>
         </header>
 
         <main id="main-content">
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
-                    <div class="speech-bubble" id="pet-speech">안녕! 퀘스트를 만들어줘!</div>
+                    <div class="speech-bubble" id="pet-speech">퀘스트를 기다리고 있어!</div>
                     <img id="pet-img" src="images/pet_normal.png" 
                          onerror="this.src='https://via.placeholder.com/200?text=No+Image'" 
                          alt="펫 캐릭터">
@@ -167,7 +166,7 @@
             <section id="quest-section" class="hidden-section">
                 <h2 style="margin-bottom:15px;">오늘의 퀘스트</h2>
                 <div id="quest-list" style="display:flex; flex-direction:column; gap:10px;">
-                    <div style="text-align:center; padding:20px; color:#999;">퀘스트를 로딩 중이거나<br>등록된 퀘스트가 없습니다.</div>
+                    <div style="text-align:center; padding:20px; color:#999;">로딩 중...</div>
                 </div>
             </section>
         </main>
@@ -200,14 +199,15 @@
     <div id="admin-modal" class="modal-overlay hidden" style="display:none;">
         <div class="modal-content">
             <button class="close-modal" onclick="document.getElementById('admin-modal').style.display='none'">&times;</button>
-            <h2 style="margin-bottom:20px;">새 퀘스트 만들기</h2>
+            <h2 style="margin-bottom:20px;">[선생님용] 퀘스트 추가</h2>
             
-            <input type="text" id="new-q-title" class="admin-input" placeholder="퀘스트 제목 (예: 방 청소)">
-            <input type="text" id="new-q-desc" class="admin-input" placeholder="설명 (예: 깨끗한 방 사진 찍기)">
+            <input type="text" id="new-q-title" class="admin-input" placeholder="퀘스트 제목 (예: 수학 숙제)">
+            <input type="text" id="new-q-desc" class="admin-input" placeholder="설명 (예: 30페이지 풀고 인증샷)">
             <input type="number" id="new-q-reward" class="admin-input" placeholder="보상 코인 (예: 100)">
             <select id="new-q-type" class="admin-input">
-                <option value="일일">일일 퀘스트</option>
-                <option value="도전">도전 퀘스트</option>
+                <option value="일일">일일 미션</option>
+                <option value="학습">학습 미션</option>
+                <option value="생활">생활 습관</option>
             </select>
 
             <button class="btn-primary" onclick="window.app.addQuest()">퀘스트 등록하기</button>
@@ -216,7 +216,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // ★ 핵심: onSnapshot, addDoc, deleteDoc, orderBy, query 등 추가됨
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -232,20 +231,19 @@
         const firebaseApp = initializeApp(firebaseConfig);
         const db = getFirestore(firebaseApp);
 
+        // ★ 역할 구분 로직
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get('id');
+        if (!userId) userId = "test_user";
+        
+        // 주소에 ?role=admin이 있으면 관리자 모드 활성화
+        const isAdmin = urlParams.get('role') === 'admin';
+
         let currentUser = null;
         let currentQuest = null;
-        let userId = new URLSearchParams(window.location.search).get('id');
-        if (!userId) userId = "test_user";
-
-        const IMAGES = {
-            normal: "images/pet_normal.png",
-            eat:    "images/pet_eat.png",
-            clean:  "images/pet_bath.png",
-            play:   "images/pet_play.png"
-        };
+        const IMAGES = { normal: "images/pet_normal.png", eat: "images/pet_eat.png", clean: "images/pet_bath.png", play: "images/pet_play.png" };
         let isPetBusy = false; 
 
-        // 게임 로직
         window.app = {
             switchTab: (targetId, btn) => {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -271,21 +269,15 @@
 
                 isPetBusy = true;
                 updateUI();
-                
                 const imgEl = document.getElementById('pet-img');
                 imgEl.src = reactionImg; 
                 document.getElementById('pet-speech').innerText = reactionText;
 
-                setTimeout(() => {
-                    imgEl.src = IMAGES.normal; 
-                    document.getElementById('pet-speech').innerText = "심심해~"; 
-                    isPetBusy = false;
-                }, 2000); 
-
+                setTimeout(() => { imgEl.src = IMAGES.normal; document.getElementById('pet-speech').innerText = "심심해~"; isPetBusy = false; }, 2000); 
                 await updateDoc(doc(db, "users", userId), { coins: currentUser.coins, pet: currentUser.pet });
             },
 
-            // --- 관리자 기능 ---
+            // 관리자 기능
             openAdminModal: () => {
                 document.getElementById('admin-modal').style.display = 'flex';
             },
@@ -298,41 +290,34 @@
 
                 if(!title || !reward) return alert("제목과 보상은 필수입니다!");
 
-                // DB에 퀘스트 저장
                 await addDoc(collection(db, "quests"), {
                     title: title, desc: desc, reward: reward, type: type,
-                    createdAt: Date.now() // 최신순 정렬용
+                    createdAt: Date.now()
                 });
 
-                alert("퀘스트가 등록되었습니다!");
+                alert("퀘스트 등록 완료!");
                 document.getElementById('admin-modal').style.display = 'none';
-                
-                // 입력창 초기화
                 document.getElementById('new-q-title').value = "";
                 document.getElementById('new-q-desc').value = "";
                 document.getElementById('new-q-reward').value = "";
             },
 
             deleteQuest: async (questId, event) => {
-                event.stopPropagation(); // 카드 클릭 이벤트 막기
-                if(confirm("정말 이 퀘스트를 삭제할까요?")) {
+                event.stopPropagation();
+                if(confirm("이 퀘스트를 삭제하시겠습니까?")) {
                     await deleteDoc(doc(db, "quests", questId));
                 }
             },
-            // ----------------
 
             openQuestModal: (id, title, desc, reward) => {
                 currentQuest = { id, title, desc, reward };
-                
                 document.getElementById('m-title').innerText = title;
                 document.getElementById('m-desc').innerText = desc;
                 document.getElementById('claim-btn').innerText = `${reward} 코인 받기`;
                 document.getElementById('claim-btn').disabled = true; 
-                
                 document.getElementById('preview-area').style.display = 'block';
                 document.getElementById('preview-img').style.display = 'none';
                 document.getElementById('file-input').value = ''; 
-
                 document.getElementById('modal-overlay').style.display = 'flex';
             },
 
@@ -344,7 +329,6 @@
                         const img = document.getElementById('preview-img');
                         img.src = e.target.result;
                         img.style.display = 'block';
-                        
                         const btn = document.getElementById('claim-btn');
                         btn.disabled = false;
                         btn.style.backgroundColor = '#FF9F1C'; 
@@ -369,7 +353,11 @@
 
         async function init() {
             try {
-                // 유저 정보 가져오기
+                // 관리자 버튼 처리
+                if (isAdmin) {
+                    document.getElementById('admin-gear-btn').style.display = 'block';
+                }
+
                 const userRef = doc(db, "users", userId);
                 const snap = await getDoc(userRef);
 
@@ -385,14 +373,13 @@
                 }
                 updateUI();
                 
-                // ★ 퀘스트 목록 실시간 불러오기 (onSnapshot) ★
                 const qQuery = query(collection(db, "quests"), orderBy("createdAt", "desc"));
                 onSnapshot(qQuery, (snapshot) => {
                     const list = document.getElementById('quest-list');
-                    list.innerHTML = ""; // 초기화
+                    list.innerHTML = ""; 
 
                     if(snapshot.empty) {
-                        list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>등록된 퀘스트가 없습니다.<br>우측 상단 톱니바퀴를 눌러 추가해보세요!</div>";
+                        list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>등록된 퀘스트가 없습니다.</div>";
                     }
 
                     snapshot.forEach(doc => {
@@ -405,14 +392,9 @@
                                 <b>${q.title}</b>
                             </div>
                             <span class="quest-reward">💰 ${q.reward}</span>
-                            <button class="delete-btn" onclick="window.app.deleteQuest('${doc.id}', event)">X</button>
+                            <button class="delete-btn" style="display: ${isAdmin ? 'block' : 'none'};" onclick="window.app.deleteQuest('${doc.id}', event)">X</button>
                         `;
-                        // 카드 누르면 모달 열기
                         div.onclick = () => window.app.openQuestModal(doc.id, q.title, q.desc, q.reward);
-                        
-                        // 관리자 모드: X 버튼 보이게 (임시)
-                        div.querySelector('.delete-btn').style.display = 'block';
-
                         list.appendChild(div);
                     });
                 });
