@@ -1,6 +1,6 @@
 import { db, doc, getDoc, setDoc } from './firebase-config.js';
 
-// URL에서 id 파라미터 가져오기 (?id=학생1)
+// Get ID from URL
 const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('id');
 
@@ -9,40 +9,43 @@ export const currentUser = {
     data: null
 };
 
+// Function to initialize authentication
 export async function initAuth() {
-    // ID가 없으면 임시 게스트 아이디 부여 (테스트용)
-    if (!currentUser.id) {
-        currentUser.id = "GUEST_" + Math.floor(Math.random() * 1000);
-        console.log("임시 ID 부여됨:", currentUser.id);
+    if (!userId) {
+        alert("태그를 통해 접속해주세요! (?id=태그번호)");
+        document.body.innerHTML = "<div style='display:flex;justify-content:center;align-items:center;height:100vh;'><h1>NFC 태그로 접속해주세요!</h1></div>";
+        return false;
     }
 
-    const userRef = doc(db, "users", currentUser.id);
+    const userRef = doc(db, "users", userId);
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists()) {
+        console.log("Existing user found:", userSnap.data());
         currentUser.data = userSnap.data();
     } else {
-        // 신규 유저 생성
-        const newUser = {
-            id: currentUser.id,
-            nickname: `모험가_${currentUser.id}`,
-            coins: 0,
+        console.log("New user! Creating profile...");
+        const newUserData = {
+            id: userId,
+            nickname: `모험가_${userId.substring(0, 4)}`,
+            coins: 100,
             pet: {
-                level: 1,
-                exp: 0,
-                characterId: 'egg', // 초기 캐릭터
-                hunger: 100,
+                hunger: 100, // 0~100
                 cleanliness: 100,
-                fun: 100
-            }
+                fun: 100,
+                exp: 0,
+                level: 1,
+                lastLogin: new Date().toISOString()
+            },
+            joinDate: new Date().toISOString()
         };
-        await setDoc(userRef, newUser);
-        currentUser.data = newUser;
+        await setDoc(userRef, newUserData);
+        currentUser.data = newUserData;
     }
 
-    // UI 업데이트
-    document.getElementById('user-nickname').innerText = currentUser.data.nickname;
-    document.getElementById('user-coins').innerText = currentUser.data.coins;
-
     return true;
+}
+
+export function updateUserLocal(newData) {
+    currentUser.data = { ...currentUser.data, ...newData };
 }

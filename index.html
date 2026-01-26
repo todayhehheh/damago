@@ -1,231 +1,144 @@
 <!DOCTYPE html>
-<html lang="ko" translate="no">
+<html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="google" content="notranslate">
-    <title>다마고치 퀘스트 (통합본)</title>
+    <title>My Tamagotchi Quest</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <style>
-        /* --- [CSS 스타일] --- */
-        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; }
-        
-        /* 1. 터치 씹힘 및 하얀 막대 원천 차단 */
-        * {
-            box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif;
-            -webkit-user-select: none !important; user-select: none !important;
-            -webkit-tap-highlight-color: transparent !important;
-            touch-action: manipulation;
-        }
-
-        body { background: #ddd; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
-        
-        .app-container {
-            width: 100%; max-width: 420px; height: 100%; background: #F7F9FC;
-            position: relative; display: flex; flex-direction: column;
-        }
-
-        /* 헤더 */
-        .app-header {
-            height: 60px; padding: 0 20px; background: white; z-index: 10;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
-
-        /* 메인 콘텐츠 */
-        #main-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
-        .hidden-section { display: none !important; }
-        .active-section { display: block !important; animation: fadeIn 0.3s; }
-
-        /* 펫 */
-        .pet-container { text-align: center; margin: 30px 0; }
-        .pet-character { font-size: 6rem; margin: 20px 0; transition: 0.1s; cursor: pointer; }
-        .pet-character:active { transform: scale(0.9); }
-        .speech-bubble {
-            background: #333; color: white; padding: 10px 15px; border-radius: 15px;
-            display: inline-block; position: relative; animation: bounce 2s infinite;
-        }
-
-        /* 버튼 & 바 */
-        .status-bars { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-        .progress-bar-bg { background: #eee; height: 10px; border-radius: 5px; overflow: hidden; margin-top:5px; }
-        .progress-bar { height: 100%; background: var(--secondary); width: 50%; transition: width 0.3s; }
-        
-        .interaction-menu { display: flex; gap: 10px; }
-        .action-btn {
-            flex: 1; background: white; border: none; padding: 15px; border-radius: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center;
-        }
-        .action-btn i { font-size: 1.5rem; color: var(--primary); margin-bottom: 5px; }
-
-        /* 하단 메뉴 (공중부양) */
-        .bottom-nav {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 380px; height: 70px;
-            background: rgba(255,255,255,0.95); border-radius: 35px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            display: flex; justify-content: space-around; align-items: center; z-index: 999;
-        }
-        .nav-btn { background: none; border: none; color: #ccc; cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .nav-btn.active { color: var(--secondary); font-weight: bold; }
-        .nav-btn i { font-size: 1.4rem; margin-bottom: 3px; }
-
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-    </style>
 </head>
+
 <body>
 
     <div class="app-container">
+        <!-- Header: User Info -->
         <header class="app-header">
-            <span id="user-nickname" style="font-weight:bold;">접속 중...</span>
-            <span class="coin-display">💰 <span id="user-coins">0</span></span>
+            <div class="user-info">
+                <span id="user-nickname">로딩중...</span>
+                <span class="coin-display"><i class="fas fa-coins"></i> <span id="user-coins">0</span></span>
+            </div>
+            <button id="admin-btn" class="icon-btn hidden"><i class="fas fa-cog"></i></button>
         </header>
 
+        <!-- Main Content Area -->
         <main id="main-content">
+            <!-- Section 1: Pet (Home) -->
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
-                    <div class="speech-bubble" id="pet-speech">로딩이 끝나면 말할게!</div>
-                    <div class="pet-character" id="pet-character">⏳</div>
+                    <div class="speech-bubble" id="pet-speech">안녕! 난 너의 친구야.</div>
+                    <div class="pet-character" id="pet-character">
+                        <!-- Emoji or Image placeholder -->
+                        🐣
+                    </div>
                 </div>
 
                 <div class="status-bars">
-                    <div>😋 배고픔 <div class="progress-bar-bg"><div class="progress-bar" id="bar-hunger"></div></div></div>
-                    <div style="margin-top:10px;">✨ 청결도 <div class="progress-bar-bg"><div class="progress-bar" id="bar-clean"></div></div></div>
-                    <div style="margin-top:10px;">😊 재미 <div class="progress-bar-bg"><div class="progress-bar" id="bar-fun"></div></div></div>
+                    <div class="status-item">
+                        <i class="fas fa-utensils"></i>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar" id="bar-hunger" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-bath"></i>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar" id="bar-clean" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-laugh"></i>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar" id="bar-fun" style="width: 50%;"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="interaction-menu">
-                    <button class="action-btn" onclick="app.action('feed')"><i class="fas fa-hamburger"></i>밥주기</button>
-                    <button class="action-btn" onclick="app.action('clean')"><i class="fas fa-soap"></i>씻기기</button>
-                    <button class="action-btn" onclick="app.action('play')"><i class="fas fa-gamepad"></i>놀기</button>
+                    <button class="action-btn" data-action="feed"><i class="fas fa-hamburger"></i> 밥주기</button>
+                    <button class="action-btn" data-action="clean"><i class="fas fa-soap"></i> 씻기기</button>
+                    <button class="action-btn" data-action="play"><i class="fas fa-gamepad"></i> 놀아주기</button>
                 </div>
             </section>
 
+            <!-- Section 2: Quests -->
             <section id="quest-section" class="hidden-section">
                 <h2>오늘의 퀘스트</h2>
-                <div id="quest-list" style="margin-top:20px;">퀘스트 로딩 중...</div>
+                <div class="quest-list" id="quest-list">
+                    <!-- Quest Cards will be injected here -->
+                </div>
             </section>
         </main>
 
+        <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <button class="nav-btn active" onclick="app.switchTab('pet-section', this)"><i class="fas fa-home"></i>홈</button>
-            <button class="nav-btn" onclick="app.switchTab('quest-section', this)"><i class="fas fa-list"></i>퀘스트</button>
+            <button class="nav-btn active" data-target="pet-section">
+                <i class="fas fa-home"></i>
+                <span>홈</span>
+            </button>
+            <button class="nav-btn" data-target="quest-section">
+                <i class="fas fa-clipboard-list"></i>
+                <span>퀘스트</span>
+            </button>
         </nav>
     </div>
 
+    <!-- Modal Template -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="close-modal">&times;</button>
+            <div id="modal-body">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Initialization Script -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initAuth } from './js/auth.js';
+        import { initPet, updatePetUI } from './js/pet.js';
+        import { initQuest } from './js/quest.js';
+        import { initAdmin } from './js/admin.js';
 
-        // 1. 설정 (사용자님 새 프로젝트 키)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E",
-            authDomain: "dama-ec569.firebaseapp.com",
-            projectId: "dama-ec569",
-            storageBucket: "dama-ec569.firebasestorage.app",
-            messagingSenderId: "328651666527",
-            appId: "1:328651666527:web:4cccf725a6ef061e2b97ea",
-            measurementId: "G-XMVX5EZ1SL"
-        };
+        async function initApp() {
+            const isAuth = await initAuth();
+            if (isAuth) {
+                initPet();
+                initQuest();
+                initAdmin();
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+                // Tab Navigation Logic
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const targetId = btn.getAttribute('data-target');
 
-        // 2. 전역 변수 설정
-        let currentUser = null;
-        let userId = new URLSearchParams(window.location.search).get('id');
+                        // Icon toggle
+                        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
 
-        // ★ 핵심 수정: ID가 없으면 멈추지 말고 'test_user'로 강제 진행 ★
-        if (!userId) {
-            console.log("ID 없음 -> 테스트 계정으로 자동 진입");
-            userId = "test_user";
-        }
-
-        // 3. 앱 기능 모음 (window 객체에 담아서 HTML에서 바로 쓰게 함)
-        window.app = {
-            // 탭 전환
-            switchTab: (targetId, btn) => {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                document.querySelectorAll('section').forEach(s => s.classList.remove('active-section', 'hidden-section'));
-                document.querySelectorAll('section').forEach(s => {
-                    if(s.id === targetId) s.classList.add('active-section');
-                    else s.classList.add('hidden-section');
+                        // Section toggle
+                        document.querySelectorAll('section').forEach(sec => {
+                            if (sec.id === targetId) {
+                                sec.classList.remove('hidden-section');
+                                sec.classList.add('active-section');
+                            } else {
+                                sec.classList.add('hidden-section');
+                                sec.classList.remove('active-section');
+                            }
+                        });
+                    });
                 });
-            },
 
-            // 행동 (밥주기 등)
-            action: async (type) => {
-                if (!currentUser) return alert("로딩 중입니다!");
-                if (currentUser.coins < 10) return alert("코인이 부족해요! (10원 필요)");
-
-                currentUser.coins -= 10;
-                if(type === 'feed') currentUser.pet.hunger = Math.min(100, currentUser.pet.hunger + 20);
-                if(type === 'clean') currentUser.pet.cleanliness = Math.min(100, currentUser.pet.cleanliness + 20);
-                if(type === 'play') currentUser.pet.fun = Math.min(100, currentUser.pet.fun + 20);
-
-                updateUI(); // 즉시 화면 갱신
-                
-                // DB 저장
-                await updateDoc(doc(db, "users", userId), {
-                    coins: currentUser.coins,
-                    pet: currentUser.pet
+                // Modal Close Logic
+                document.querySelector('.close-modal').addEventListener('click', () => {
+                    document.getElementById('modal-overlay').classList.add('hidden');
                 });
             }
-        };
-
-        // 4. 초기화 함수 (자동 실행)
-        async function init() {
-            try {
-                const userRef = doc(db, "users", userId);
-                const snap = await getDoc(userRef);
-
-                if (snap.exists()) {
-                    currentUser = snap.data();
-                } else {
-                    // 신규 유저 생성
-                    currentUser = {
-                        nickname: "모험가_" + userId,
-                        coins: 100,
-                        pet: { hunger: 50, cleanliness: 50, fun: 50, characterId: 'egg' }
-                    };
-                    await setDoc(userRef, currentUser);
-                }
-                
-                // 로딩 완료 후 UI 그리기
-                updateUI(); 
-
-                // 퀘스트 로딩 (임시)
-                document.getElementById('quest-list').innerHTML = `
-                    <div style="background:white; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-                        <h3>💧 물 마시기</h3>
-                        <p style="color:#666; font-size:0.8rem;">보상: 30 코인</p>
-                    </div>
-                `;
-
-            } catch (error) {
-                console.error("에러 발생:", error);
-                document.getElementById('pet-speech').innerText = "오류가 났어요 ㅠㅠ";
-            }
         }
 
-        // 5. 화면 갱신 함수
-        function updateUI() {
-            document.getElementById('user-nickname').innerText = currentUser.nickname;
-            document.getElementById('user-coins').innerText = currentUser.coins;
-            document.getElementById('pet-character').innerText = currentUser.pet.characterId === 'egg' ? '🥚' : '🐥';
-            document.getElementById('pet-speech').innerText = "안녕! 난 준비됐어!";
-            
-            document.getElementById('bar-hunger').style.width = currentUser.pet.hunger + "%";
-            document.getElementById('bar-clean').style.width = currentUser.pet.cleanliness + "%";
-            document.getElementById('bar-fun').style.width = currentUser.pet.fun + "%";
-        }
-
-        // 실행!
-        init();
+        initApp();
     </script>
 </body>
+
 </html>

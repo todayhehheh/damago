@@ -1,202 +1,42 @@
 :root {
     --primary-color: #FF9F1C;
     --secondary-color: #2EC4B6;
-    --bg-color: #e0e5ec;
-    --card-bg: #FFFFFF;
+    --bg-color: #F7F9FC;
     --text-color: #333;
-    --nav-height: 70px;
+    --card-bg: #FFFFFF;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --nav-height: 60px;
 }
 
-/* [핵심] 모든 요소 선택 방지 및 터치 씹힘 해결 */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Noto Sans KR', sans-serif;
-
-    /* ★ 1. 텍스트/이미지 선택 절대 금지 (하얀 막대 원천 봉쇄) ★ */
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
-    user-select: none !important;
-
-    /* ★ 2. 꾹 눌렀을 때 메뉴 뜨는 것 방지 ★ */
-    -webkit-touch-callout: none !important;
-    
-    /* ★ 3. 터치 반응 속도 최적화 ★ */
-    touch-action: manipulation;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     -webkit-tap-highlight-color: transparent;
 }
 
-/* 입력창만 예외로 글씨 쓸 수 있게 허용 */
-input, textarea {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-    -webkit-touch-callout: default !important;
-}
-
 body {
-    background-color: #ddd;
+    background-color: #e0e5ec;
     display: flex;
     justify-content: center;
     height: 100vh;
     overflow: hidden;
 }
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Tamagotchi Quest</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
 
-<body>
-    <script>
-        window.onload = function() {
-            // 1. 혹시 브라우저가 자동으로 텍스트를 잡았다면 즉시 해제
-            window.getSelection().removeAllRanges();
-            
-            // 2. 혹시 입력창에 포커스가 가있다면 즉시 해제 (키보드/검색바 방지)
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
-            
-            // 3. 스크롤 맨 위로
-            window.scrollTo(0, 0);
-        };
-
-        // 화면 터치 시에도 혹시 모를 선택 영역 강제 해제
-        document.addEventListener('touchstart', function() {
-            window.getSelection().removeAllRanges();
-        });
-    </script>
-
-    <div class="app-container">
-        <header class="app-header">
-            <div class="user-info">
-                <span id="user-nickname">로딩중...</span>
-                <span class="coin-display"><i class="fas fa-coins"></i> <span id="user-coins">0</span></span>
-            </div>
-            <button id="admin-btn" class="icon-btn hidden"><i class="fas fa-cog"></i></button>
-        </header>
-
-        <main id="main-content">
-            <section id="pet-section" class="active-section">
-                <div class="pet-container">
-                    <div class="speech-bubble" id="pet-speech">안녕! 난 너의 친구야.</div>
-                    <div class="pet-character" id="pet-character">🥚</div>
-                </div>
-
-                <div class="status-bars">
-                    <div class="status-item">
-                        <i class="fas fa-utensils"></i>
-                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-hunger" style="width: 50%;"></div></div>
-                    </div>
-                    <div class="status-item">
-                        <i class="fas fa-bath"></i>
-                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-clean" style="width: 50%;"></div></div>
-                    </div>
-                    <div class="status-item">
-                        <i class="fas fa-laugh"></i>
-                        <div class="progress-bar-bg"><div class="progress-bar" id="bar-fun" style="width: 50%;"></div></div>
-                    </div>
-                </div>
-
-                <div class="interaction-menu">
-                    <button class="action-btn" data-action="feed"><i class="fas fa-hamburger"></i> 밥주기</button>
-                    <button class="action-btn" data-action="clean"><i class="fas fa-soap"></i> 씻기기</button>
-                    <button class="action-btn" data-action="play"><i class="fas fa-gamepad"></i> 놀아주기</button>
-                </div>
-            </section>
-
-            <section id="quest-section" class="hidden-section">
-                <h2>오늘의 퀘스트</h2>
-                <div class="quest-list" id="quest-list"></div>
-            </section>
-
-            <section id="feed-section" class="hidden-section">
-                <h2>모두의 인증</h2>
-                <div id="feed-container" class="feed-list"></div>
-            </section>
-        </main>
-
-        <nav class="bottom-nav">
-            <button class="nav-btn active" data-target="pet-section">
-                <i class="fas fa-home"></i> <span>홈</span>
-            </button>
-            <button class="nav-btn" data-target="quest-section">
-                <i class="fas fa-clipboard-list"></i> <span>퀘스트</span>
-            </button>
-            <button class="nav-btn" data-target="feed-section">
-                <i class="fas fa-camera-retro"></i> <span>피드</span>
-            </button>
-        </nav>
-    </div>
-
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div class="modal-content">
-            <button class="close-modal">&times;</button>
-            <div id="modal-body"></div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initAuth } from './js/auth.js';
-        import { initPet } from './js/pet.js';
-        import { initQuest } from './js/quest.js';
-        import { initFeed } from './js/feed.js';
-        import { initAdmin } from './js/admin.js';
-
-        async function initApp() {
-            const isAuth = await initAuth();
-            if (isAuth) {
-                initPet();
-                initQuest();
-                initFeed();
-                initAdmin();
-
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const targetId = btn.getAttribute('data-target');
-                        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                        document.querySelectorAll('section').forEach(sec => {
-                            if (sec.id === targetId) {
-                                sec.classList.remove('hidden-section');
-                                sec.classList.add('active-section');
-                            } else {
-                                sec.classList.add('hidden-section');
-                                sec.classList.remove('active-section');
-                            }
-                        });
-                    });
-                });
-
-                document.querySelector('.close-modal').addEventListener('click', () => {
-                    document.getElementById('modal-overlay').classList.add('hidden');
-                });
-            }
-        }
-        initApp();
-    </script>
-</body>
-</html>
-/* 앱 전체 컨테이너 */
+/* Mobile Container */
 .app-container {
     width: 100%;
     max-width: 420px;
     height: 100%;
-    background-color: #F7F9FC;
+    background-color: var(--bg-color);
     position: relative;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
 }
 
-/* --- 헤더 --- */
+/* Header */
 .app-header {
     height: 60px;
     padding: 0 20px;
@@ -204,82 +44,202 @@ body {
     justify-content: space-between;
     align-items: center;
     background: var(--card-bg);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     z-index: 10;
 }
-.user-info { font-weight: bold; display: flex; gap: 10px; align-items: center; width:100%; justify-content: space-between; }
-.coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; }
-.icon-btn { border:none; background:none; font-size:1.2rem; color:#888; cursor:pointer; }
 
-/* --- 메인 콘텐츠 --- */
+.user-info {
+    font-weight: bold;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.coin-display {
+    color: #f1c40f;
+    background: #fff8e1;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+}
+
+/* Main Content */
 #main-content {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
-    padding-bottom: 100px;
+    padding-bottom: calc(var(--nav-height) + 20px);
+    /* Space for nav */
 }
 
-/* 섹션 공통 */
-.hidden-section { display: none; }
-.active-section { display: block; animation: fadeIn 0.3s; }
+.hidden-section {
+    display: none;
+}
 
-/* 펫 섹션 */
-.pet-container { text-align: center; margin: 30px 0; }
-.pet-character { font-size: 7rem; margin: 20px 0; transition: transform 0.1s; cursor: pointer; }
-.pet-character:active { transform: scale(0.9); }
+.active-section {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Pet Section */
+.pet-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    position: relative;
+}
+
 .speech-bubble {
-    background: #333; color: white; padding: 10px 15px; border-radius: 15px;
-    display: inline-block; margin-bottom: 10px; position: relative;
+    background: #333;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    position: relative;
+    font-size: 0.9rem;
     animation: bounce 2s infinite;
 }
+
 .speech-bubble::after {
-    content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-    border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent;
-}
-
-/* 상태바 */
-.status-bars { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-.status-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.progress-bar-bg { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
-.progress-bar { height: 100%; background: var(--secondary-color); transition: width 0.5s; }
-
-/* 버튼들 */
-.interaction-menu { display: flex; gap: 10px; }
-.action-btn {
-    flex: 1; background: white; border: none; padding: 15px 5px; border-radius: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px;
-}
-.action-btn i { font-size: 1.5rem; color: var(--primary-color); }
-
-/* 리스트 스타일 */
-.quest-list, .feed-list { display: flex; flex-direction: column; gap: 15px; }
-.quest-card, .feed-card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-.feed-img-wrapper { width: 100%; height: 250px; background: #eee; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
-.feed-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-.feed-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; margin-bottom: 5px; }
-.feed-footer { display: flex; justify-content: space-between; align-items: center; }
-.like-btn { border:none; background:none; font-size:1.2rem; color:#ccc; }
-.like-btn.liked { color: #e91e63; }
-
-/* --- 하단 네비게이션 --- */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
+    content: '';
+    position: absolute;
+    bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
-    
-    width: 100%;
-    max-width: 420px;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.pet-character {
+    font-size: 8rem;
+    transition: transform 0.2s;
+}
+
+.pet-character:active {
+    transform: scale(0.9);
+}
+
+/* Status Bars */
+.status-bars {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.status-item i {
+    width: 25px;
+    color: #888;
+}
+
+.progress-bar-bg {
+    flex: 1;
+    height: 10px;
+    background: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--secondary-color);
+    transition: width 0.5s ease;
+}
+
+/* Interaction Menu */
+.interaction-menu {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.action-btn {
+    background: var(--card-bg);
+    border: none;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 80px;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.action-btn:active {
+    transform: scale(0.95);
+    background: #f0f0f0;
+}
+
+.action-btn i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+/* Quest Cards */
+.quest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.quest-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.quest-card:active {
+    transform: scale(0.98);
+}
+
+.quest-info h3 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.quest-reward {
+    color: #f1c40f;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.quest-status {
+    font-size: 1.2rem;
+    color: #ccc;
+}
+
+.quest-status.completed {
+    color: var(--secondary-color);
+}
+
+/* Bottom Nav */
+.bottom-nav {
     height: var(--nav-height);
-    background: white;
-    border-top: 1px solid #eee;
-    
+    background: var(--card-bg);
     display: flex;
     justify-content: space-around;
     align-items: center;
-    
-    /* ★ 중요: 터치 먹통 방지 (z-index 높임) ★ */
-    z-index: 9999;
+    border-top: 1px solid #eee;
 }
 
 .nav-btn {
@@ -288,55 +248,114 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    color: #ccc;
+    color: #aaa;
     gap: 4px;
     cursor: pointer;
-    flex: 1;
-    height: 100%;
+    width: 50%;
 }
-.nav-btn.active { color: var(--secondary-color); font-weight: bold; }
-.nav-btn i { font-size: 1.4rem; }
 
-/* --- 모달 --- */
+.nav-btn.active {
+    color: var(--primary-color);
+}
+
+/* Modal */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
-    z-index: 10000;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
+    backdrop-filter: blur(5px);
 }
+
 .modal-content {
-    background: white;
+    background: var(--card-bg);
     width: 100%;
-    max-width: 350px;
+    max-width: 380px;
     border-radius: 20px;
     padding: 25px;
     position: relative;
     max-height: 80vh;
     overflow-y: auto;
+    animation: slideUp 0.3s ease;
 }
+
 .close-modal {
     position: absolute;
     top: 15px;
     right: 20px;
     background: none;
     border: none;
-    font-size: 2rem;
-    color: #333;
-    padding: 10px;
+    font-size: 1.5rem;
     cursor: pointer;
-    z-index: 10001;
 }
 
-/* 유틸 */
-.hidden { display: none !important; }
-.btn-primary { width: 100%; padding: 12px; background: var(--secondary-color); color: white; border: none; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; }
+.hidden {
+    display: none !important;
+}
 
-/* 애니메이션 */
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+/* Utils */
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    margin-top: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
+.btn-primary:active {
+    opacity: 0.9;
+}
+
+.btn-primary:disabled {
+    background: #ccc;
+}
+
+.btn-claim {
+    background: linear-gradient(45deg, #f1c40f, #e67e22);
+}
+
+/* Animation Keys */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}

@@ -1,104 +1,142 @@
-import { currentUser } from './auth.js';
+import { currentUser, updateUserLocal } from './auth.js';
 import { db, doc, updateDoc } from './firebase-config.js';
 
-// ★ 진화 트리 (확률형 랜덤 진화)
-const EVOLUTION_TREE = {
-    'egg': { next: ['baby_chick', 'baby_slime'], emoji: '🥚', name: '알' },
-    
-    // 2단계
-    'baby_chick': { next: ['chicken_red', 'chicken_blue'], emoji: '🐣', name: '삐약이' },
-    'baby_slime': { next: ['slime_king', 'slime_ghost'], emoji: '💧', name: '슬라임' },
-
-    // 3단계 (최종)
-    'chicken_red': { next: [], emoji: '🐓', name: '불꽃닭' },
-    'chicken_blue': { next: [], emoji: '🐧', name: '얼음펭귄' },
-    'slime_king': { next: [], emoji: '👑', name: '킹슬라임' },
-    'slime_ghost': { next: [], emoji: '👻', name: '유령' }
-};
+// Configuration
+const DECAY_RATE_PER_SECOND = 1 / 60; // Example: 1 point drop per minute (approx)
+const INTERACTION_COST = 10;
+const INTERACTION_GAIN = 15;
 
 export function initPet() {
+    console.log("Pet System Initialized");
+    applyDecay();
     updatePetUI();
-    
+    startTicker();
+
+    // Bind buttons
     document.querySelectorAll('.action-btn').forEach(btn => {
         btn.addEventListener('click', () => handleInteraction(btn.dataset.action));
     });
 }
 
+function applyDecay() {
+    if (!currentUser.data || !currentUser.data.pet) return;
+
+    const lastLogin = new Date(currentUser.data.pet.lastLogin).getTime();
+    const now = new Date().getTime();
+    const diffSeconds = (now - lastLogin) / 1000;
+
+    const decayAmount = Math.floor(diffSeconds * DECAY_RATE_PER_SECOND);
+
+    if (decayAmount > 0) {
+        // Decrease stats
+        currentUser.data.pet.hunger = Math.max(0, currentUser.data.pet.hunger - decayAmount);
+        currentUser.data.pet.cleanliness = Math.max(0, currentUser.data.pet.cleanliness - decayAmount);
+        currentUser.data.pet.fun = Math.max(0, currentUser.data.pet.fun - decayAmount);
+
+        // Update last login to now
+        currentUser.data.pet.lastLogin = new Date().toISOString();
+
+        // Sync to DB (Debounced normally, but here direct)
+        savePetState();
+
+        console.log(`Applied decay: -${decayAmount} points over ${Math.floor(diffSeconds / 60)} mins`);
+    }
+}
+
 async function handleInteraction(action) {
     if (!currentUser.data) return;
-    const pet = currentUser.data.pet;
 
-    if (currentUser.data.coins < 10) {
-        alert("코인이 부족해요! (10코인 필요)");
+    // Check Coins
+    if (currentUser.data.coins < INTERACTION_COST) {
+        showSpeech("코인이 부족해요! 😭");
         return;
     }
 
-    // 코인 차감 & 경험치 증가
-    currentUser.data.coins -= 10;
-    pet.exp += 20;
+    // Apply Effect
+    let speechText = "";
+    if (action === 'feed') {
+        currentUser.data.pet.hunger = Math.min(100, currentUser.data.pet.hunger + INTERACTION_GAIN);
+        speechText = "냠냠! 맛있다!";
+    } else if (action === 'clean') {
+        currentUser.data.pet.cleanliness = Math.min(100, currentUser.data.pet.cleanliness + INTERACTION_GAIN);
+        speechText = "상쾌해!";
+    } else if (action === 'play') {
+        currentUser.data.pet.fun = Math.min(100, currentUser.data.pet.fun + INTERACTION_GAIN);
+        speechText = "헤헤! 재밌다!";
+    }
 
-    // 행동별 스탯 증가
-    if (action === 'feed') pet.hunger = Math.min(100, pet.hunger + 20);
-    if (action === 'clean') pet.cleanliness = Math.min(100, pet.cleanliness + 20);
-    if (action === 'play') pet.fun = Math.min(100, pet.fun + 20);
+    // Deduct Coin
+    currentUser.data.coins -= INTERACTION_COST;
 
-    // ★ 레벨업 및 진화 체크
-    checkEvolution();
-
-    // 저장 및 UI 갱신
+    // Save & Update
     updatePetUI();
-    document.getElementById('user-coins').innerText = currentUser.data.coins;
-    
-    // 시각 효과
-    showFloatingText("-10 Coin", "#f1c40f");
-    showFloatingText("+20 EXP", "#3498db");
-
-    await updateDoc(doc(db, "users", currentUser.id), {
-        coins: currentUser.data.coins,
-        pet: pet
-    });
+    showSpeech(speechText);
+    await savePetState();
 }
 
-function checkEvolution() {
-    const pet = currentUser.data.pet;
-    const currentInfo = EVOLUTION_TREE[pet.characterId] || EVOLUTION_TREE['egg'];
-
-    // 경험치 100 달성 시
-    if (pet.exp >= 100) {
-        if (currentInfo.next.length > 0) {
-            // 랜덤 진화
-            const nextId = currentInfo.next[Math.floor(Math.random() * currentInfo.next.length)];
-            pet.characterId = nextId;
-            pet.level++;
-            pet.exp = 0;
-            alert(`🎉 축하합니다! ${EVOLUTION_TREE[nextId].name}(으)로 진화했습니다!`);
-        } else {
-            pet.exp = 100; // 만렙 고정
+async function savePetState() {
+    if (!currentUser.id) return;
+    const userRef = doc(db, "users", currentUser.id);
+    await updateDoc(userRef, {
+        coins: currentUser.data.coins,
+        pet: {
+            ...currentUser.data.pet,
+            lastLogin: new Date().toISOString()
         }
-    }
+    });
+    // Update header
+    updateHeader();
+}
+
+function startTicker() {
+    setInterval(() => {
+        if (!currentUser.data) return;
+        // Visual decay every minute (optional) or just speech updates
+        updateSpeech();
+    }, 10000);
 }
 
 export function updatePetUI() {
     if (!currentUser.data) return;
     const pet = currentUser.data.pet;
-    const info = EVOLUTION_TREE[pet.characterId] || EVOLUTION_TREE['egg'];
 
-    document.getElementById('pet-character').innerText = info.emoji;
-    document.getElementById('pet-level-info').innerText = `Lv.${pet.level} ${info.name}`;
-    document.getElementById('pet-speech').innerText = `경험치: ${pet.exp}%`;
+    // Bars
+    document.getElementById('bar-hunger').style.width = `${pet.hunger}%`;
+    document.getElementById('bar-clean').style.width = `${pet.cleanliness}%`;
+    document.getElementById('bar-fun').style.width = `${pet.fun}%`;
 
-    document.getElementById('bar-hunger').style.width = pet.hunger + "%";
-    document.getElementById('bar-clean').style.width = pet.cleanliness + "%";
-    document.getElementById('bar-fun').style.width = pet.fun + "%";
+    // Colors based on level
+    updateBarColor('bar-hunger', pet.hunger);
+    updateBarColor('bar-clean', pet.cleanliness);
+    updateBarColor('bar-fun', pet.fun);
+
+    updateHeader();
 }
 
-function showFloatingText(text, color) {
-    const el = document.createElement('div');
+function updateBarColor(id, val) {
+    const el = document.getElementById(id);
+    if (val < 30) el.style.backgroundColor = "#e74c3c"; // Red
+    else if (val < 70) el.style.backgroundColor = "#f1c40f"; // Yellow
+    else el.style.backgroundColor = "#2ecc71"; // Green
+}
+
+function updateHeader() {
+    document.getElementById('user-nickname').innerText = currentUser.data.nickname;
+    document.getElementById('user-coins').innerText = currentUser.data.coins;
+}
+
+function updateSpeech() {
+    const pet = currentUser.data.pet;
+    if (pet.hunger < 30) showSpeech("배고파요...");
+    else if (pet.cleanliness < 30) showSpeech("냄새나요...");
+    else if (pet.fun < 30) showSpeech("심심해요...");
+}
+
+function showSpeech(text) {
+    const el = document.getElementById('pet-speech');
     el.innerText = text;
-    Object.assign(el.style, {
-        position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%, -50%)',
-        color: color, fontWeight: 'bold', pointerEvents: 'none', animation: 'floatUp 1.5s ease-out forwards'
-    });
-    document.querySelector('.pet-container').appendChild(el);
-    setTimeout(() => el.remove(), 1500);
+    // Simple animation reset
+    el.style.animation = 'none';
+    el.offsetHeight; /* trigger reflow */
+    el.style.animation = 'bounce 2s infinite';
 }
