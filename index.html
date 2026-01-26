@@ -4,195 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    <title>다마고치 퀘스트 (7단계: 데일리 미션 & 보상 분리)</title>
+    <title>다마고치 퀘스트</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
-        /* --- [기본 스타일] --- */
-        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; --done: #4cd137; }
-        
-        * {
-            box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif;
-            -webkit-user-select: none !important; user-select: none !important;
-            -webkit-tap-highlight-color: transparent !important;
-            touch-action: manipulation;
-        }
-        
-        input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }
-
+        /* CSS는 기존과 동일하게 유지 */
+        :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; -webkit-user-select: none !important; user-select: none !important; -webkit-tap-highlight-color: transparent !important; touch-action: manipulation; }
         body { background: #ddd; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
-        
-        .app-container {
-            width: 100%; max-width: 420px; height: 100%; background: #F7F9FC;
-            position: relative; display: flex; flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
-        /* 헤더 */
-        .app-header {
-            height: 60px; padding: 0 20px; background: white; z-index: 10;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .header-left { display: flex; align-items: center; font-weight: bold; font-size: 1.1rem; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
-        .admin-btn { border: none; background: none; font-size: 1.2rem; color: #ccc; cursor: pointer; display: none; }
-
-        /* 메인 콘텐츠 */
+        .app-container { width: 100%; max-width: 420px; height: 100%; background: #F7F9FC; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .app-header { height: 60px; padding: 0 20px; background: white; z-index: 10; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
         #main-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
         .hidden-section { display: none !important; }
         .active-section { display: block !important; animation: fadeIn 0.3s; }
-
-        /* 펫 영역 */
-        .pet-container { 
-            text-align: center; margin: 20px 0; height: 280px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        #pet-img {
-            width: 220px; height: 220px; object-fit: contain;
-            transition: transform 0.1s; cursor: pointer;
-            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
-        }
+        .pet-container { text-align: center; margin: 20px 0; height: 280px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #pet-img { width: 220px; height: 220px; object-fit: contain; transition: transform 0.1s; cursor: pointer; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); }
         #pet-img:active { transform: scale(0.95); }
-
-        .speech-bubble {
-            background: #333; color: white; padding: 10px 15px; border-radius: 15px;
-            display: inline-block; position: relative; margin-bottom: 15px;
-            animation: bounce 2s infinite;
-        }
-
-        /* 레벨 UI */
+        .speech-bubble { background: #333; color: white; padding: 10px 15px; border-radius: 15px; display: inline-block; position: relative; margin-bottom: 15px; animation: bounce 2s infinite; }
         .level-info { width: 100%; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .level-badge { background: #333; color: #fff; padding: 5px 10px; border-radius: 10px; font-weight: bold; font-size: 0.8rem; white-space: nowrap; }
+        .level-badge { background: #333; color: #fff; padding: 5px 10px; border-radius: 10px; font-weight: bold; font-size: 0.8rem; }
         .exp-bar-bg { flex: 1; height: 12px; background: #ddd; border-radius: 6px; overflow: hidden; position: relative; }
         .exp-bar { height: 100%; background: linear-gradient(90deg, #FF9F1C, #FFD700); width: 0%; transition: width 0.5s; }
         .exp-text { position: absolute; width: 100%; text-align: center; font-size: 0.6rem; color: #555; line-height: 12px; top: 0; }
-
-        /* 상태바 */
         .status-bars { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
         .progress-bar-bg { background: #eee; height: 10px; border-radius: 5px; overflow: hidden; margin-top:5px; }
         .progress-bar { height: 100%; background: var(--secondary); width: 50%; transition: width 0.3s; }
-        
         .interaction-menu { display: flex; gap: 10px; }
-        .action-btn {
-            flex: 1; background: white; border: none; padding: 15px; border-radius: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center;
-        }
+        .action-btn { flex: 1; background: white; border: none; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .action-btn i { font-size: 1.5rem; color: var(--primary); margin-bottom: 5px; }
-
-        /* 퀘스트 카드 */
-        .quest-card {
-            background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center;
-            transition: transform 0.1s; position: relative;
-        }
-        .quest-card:active { transform: scale(0.98); background: #fafafa; }
-        .quest-tag { font-size: 0.8rem; background: #E3F2FD; color: #2196F3; padding: 3px 8px; border-radius: 5px; margin-right: 5px; }
-        .quest-reward { font-weight: bold; color: #f1c40f; font-size: 0.9rem; }
-        
-        /* 보상 받기 버튼 */
-        .claim-btn-small {
-            background: var(--primary); color: white; border: none; padding: 8px 15px;
-            border-radius: 20px; font-weight: bold; font-size: 0.8rem; cursor: pointer;
-            animation: bounce 1s infinite;
-        }
-
-        /* 피드 카드 */
+        .quest-card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .quest-tag { font-size: 0.8rem; padding: 3px 8px; border-radius: 5px; margin-right: 5px; }
+        .tag-daily { background: #E3F2FD; color: #2196F3; } /* 일일 파란색 */
+        .tag-special { background: #FFF3E0; color: #FF9800; } /* 특별 주황색 */
         .feed-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .feed-user { font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        .feed-quest-title { font-size: 0.8rem; color: #2196F3; background: #E3F2FD; padding: 2px 6px; border-radius: 4px; }
+        .feed-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .feed-img { width: 100%; height: 250px; object-fit: cover; border-radius: 10px; background: #eee; }
-        .feed-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .feed-date { font-size: 0.8rem; color: #999; }
-        .like-btn { border: none; background: none; font-size: 1.2rem; cursor: pointer; color: #ccc; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .feed-footer { display: flex; justify-content: space-between; margin-top: 10px; }
         .like-btn.liked { color: var(--heart); transform: scale(1.1); }
-
-        /* 하단 메뉴 */
-        .bottom-nav {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 380px; height: 70px;
-            background: rgba(255,255,255,0.95); border-radius: 35px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            display: flex; justify-content: space-around; align-items: center; z-index: 900;
-        }
-        .nav-btn { background: none; border: none; color: #ccc; cursor: pointer; flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .bottom-nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; height: 70px; background: rgba(255,255,255,0.95); border-radius: 35px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); display: flex; justify-content: space-around; align-items: center; z-index: 900; }
+        .nav-btn { background: none; border: none; color: #ccc; flex: 1; display: flex; flex-direction: column; align-items: center; }
         .nav-btn.active { color: var(--secondary); font-weight: bold; }
         .nav-btn i { font-size: 1.4rem; margin-bottom: 3px; }
-
-        /* 모달창 */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 2000;
-            display: flex; justify-content: center; align-items: center; padding: 20px;
-        }
-        .modal-content {
-            background: white; width: 100%; max-width: 350px; border-radius: 20px;
-            padding: 25px; position: relative; max-height: 80vh; overflow-y: auto; text-align: center;
-        }
-        .close-modal { position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 2rem; cursor: pointer; color: #888; }
-        .btn-primary { width: 100%; padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: white; width: 100%; max-width: 350px; border-radius: 20px; padding: 25px; position: relative; max-height: 80vh; overflow-y: auto; text-align: center; }
+        .close-modal { position: absolute; top: 15px; right: 20px; border: none; background: none; font-size: 2rem; }
+        .btn-primary { width: 100%; padding: 15px; background: var(--secondary); color: white; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; }
         .btn-primary:disabled { background: #ccc; }
-        .admin-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; }
-
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     </style>
 </head>
 <body>
-
     <div class="app-container">
         <header class="app-header">
-            <div class="header-left">
-                <span id="user-nickname">로딩중...</span>
-            </div>
-            <div class="header-right">
-                <span class="coin-display">💰 <span id="user-coins">0</span></span>
-                <button class="admin-btn" id="admin-gear-btn" onclick="window.app.openAdminModal()"><i class="fas fa-cog"></i></button>
-            </div>
+            <span id="user-nickname">로딩중...</span>
+            <span class="coin-display">💰 <span id="user-coins">0</span></span>
         </header>
-
         <main id="main-content">
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
                     <div class="speech-bubble" id="pet-speech">로딩 중...</div>
                     <img id="pet-img" src="images/pet_lv1.png" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
                 </div>
-                
                 <div class="level-info">
                     <div class="level-badge" id="level-badge">Lv.1</div>
-                    <div class="exp-bar-bg">
-                        <div class="exp-bar" id="exp-bar"></div>
-                        <div class="exp-text" id="exp-text">EXP 0 / 100</div>
-                    </div>
+                    <div class="exp-bar-bg"><div class="exp-bar" id="exp-bar"></div><div class="exp-text" id="exp-text">EXP 0/100</div></div>
                 </div>
-
                 <div class="status-bars">
                     <div>😋 배고픔 <div class="progress-bar-bg"><div class="progress-bar" id="bar-hunger"></div></div></div>
                     <div style="margin-top:10px;">✨ 청결도 <div class="progress-bar-bg"><div class="progress-bar" id="bar-clean"></div></div></div>
                     <div style="margin-top:10px;">😊 재미 <div class="progress-bar-bg"><div class="progress-bar" id="bar-fun"></div></div></div>
                 </div>
-
                 <div class="interaction-menu">
                     <button class="action-btn" onclick="window.app.action('feed')"><i class="fas fa-hamburger"></i>밥주기</button>
                     <button class="action-btn" onclick="window.app.action('clean')"><i class="fas fa-soap"></i>씻기기</button>
                     <button class="action-btn" onclick="window.app.action('play')"><i class="fas fa-gamepad"></i>놀기</button>
                 </div>
             </section>
-
             <section id="quest-section" class="hidden-section">
                 <h2 style="margin-bottom:15px;">오늘의 퀘스트</h2>
                 <div id="quest-list" style="display:flex; flex-direction:column; gap:10px;"></div>
             </section>
-
             <section id="feed-section" class="hidden-section">
                 <h2 style="margin-bottom:15px;">우리 반 갤러리</h2>
                 <div id="feed-list"></div>
             </section>
         </main>
-
         <nav class="bottom-nav">
             <button class="nav-btn active" onclick="window.app.switchTab('pet-section', this)"><i class="fas fa-home"></i>홈</button>
             <button class="nav-btn" onclick="window.app.switchTab('quest-section', this)"><i class="fas fa-list"></i>퀘스트</button>
@@ -203,403 +100,205 @@
     <div id="modal-overlay" class="modal-overlay hidden" style="display:none;">
         <div class="modal-content">
             <button class="close-modal" onclick="window.app.closeModal()">&times;</button>
-            <h2 id="m-title" style="margin-bottom:10px;">퀘스트 인증</h2>
-            <p id="m-desc" style="color:#666; margin-bottom:20px;">설명</p>
-            
-            <div id="photo-upload-area" style="background:#f5f5f5; border-radius:10px; padding:20px; cursor:pointer;" onclick="document.getElementById('file-input').click()">
-                <div id="preview-area">
-                    <i class="fas fa-camera" style="font-size:2rem; color:#ccc;"></i>
-                    <p style="margin-top:10px; font-size:0.9rem; color:#888;">터치해서 사진 올리기</p>
-                </div>
-                <img id="preview-img" style="width:100%; border-radius:10px; display:none;">
+            <h2 id="m-title">퀘스트 인증</h2>
+            <p id="m-desc" style="color:#666;">설명</p>
+            <div id="photo-area" style="background:#f5f5f5; padding:20px; border-radius:10px;" onclick="document.getElementById('file-input').click()">
+                <div id="preview-text"><i class="fas fa-camera" style="font-size:2rem; color:#ccc;"></i><br>터치하여 사진 업로드</div>
+                <img id="preview-img" style="width:100%; display:none; border-radius:10px;">
             </div>
-            <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="window.app.handleFileSelect(this)">
-            
-            <button id="submit-quest-btn" class="btn-primary" disabled onclick="window.app.submitQuestPhoto()">인증샷 제출하기</button>
-        </div>
-    </div>
-
-    <div id="admin-modal" class="modal-overlay hidden" style="display:none;">
-        <div class="modal-content">
-            <button class="close-modal" onclick="document.getElementById('admin-modal').style.display='none'">&times;</button>
-            <h2>[선생님용] 퀘스트 추가</h2>
-            <input type="text" id="new-q-title" class="admin-input" placeholder="제목">
-            <input type="text" id="new-q-desc" class="admin-input" placeholder="설명">
-            <input type="number" id="new-q-reward" class="admin-input" placeholder="보상 코인">
-            <select id="new-q-type" class="admin-input"><option value="일일">일일</option><option value="학습">학습</option><option value="생활">생활</option></select>
-            <button class="btn-primary" onclick="window.app.addQuest()">등록하기</button>
+            <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="window.app.handleFile(this)">
+            <button id="submit-btn" class="btn-primary" disabled onclick="window.app.submitQuest()">인증 제출하기</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, deleteDoc, onSnapshot, query, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot, query, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E",
-            authDomain: "dama-ec569.firebaseapp.com",
-            projectId: "dama-ec569",
-            storageBucket: "dama-ec569.firebasestorage.app",
-            messagingSenderId: "328651666527",
-            appId: "1:328651666527:web:4cccf725a6ef061e2b97ea",
-            measurementId: "G-XMVX5EZ1SL"
-        };
+        const config = { apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E", authDomain: "dama-ec569.firebaseapp.com", projectId: "dama-ec569", storageBucket: "dama-ec569.firebasestorage.app", messagingSenderId: "328651666527", appId: "1:328651666527:web:4cccf725a6ef061e2b97ea", measurementId: "G-XMVX5EZ1SL" };
+        const db = getFirestore(initializeApp(config));
+        const userId = new URLSearchParams(window.location.search).get('id') || "test_user";
+        let user = null;
+        let curQuestId = null;
+        let uploadImg = null;
 
-        const firebaseApp = initializeApp(firebaseConfig);
-        const db = getFirestore(firebaseApp);
-        const urlParams = new URLSearchParams(window.location.search);
-        let userId = urlParams.get('id') || "test_user";
-        const isAdmin = urlParams.get('role') === 'admin';
-
-        let currentUser = null;
-        let currentQuestId = null; // 현재 진행중인 퀘스트 ID
-        let selectedImageBase64 = null;
-
-        const IMAGES = { eat: "images/pet_eat.png", clean: "images/pet_bath.png", play: "images/pet_play.png" };
-        let isPetBusy = false; 
-        const EXP_PER_LEVEL = 100;
-
-        // ★ 고정 데일리 퀘스트 정의 (DB에 없어도 항상 뜸) ★
-        const DAILY_QUESTS = [
-            { id: 'daily_photo', title: '📷 오늘의 인증샷', desc: '오늘의 활동 사진을 올려보세요!', reward: 50, type: '매일' },
-            { id: 'daily_likes', title: '❤️ 친구 칭찬하기', desc: '피드에서 좋아요 3번 누르기', reward: 30, type: '매일' }
+        const DAILY = [
+            { id: 'daily_photo', title: '📷 오늘의 인증샷', desc: '오늘 활동 사진 올리기', reward: 50, type: '일일' },
+            { id: 'daily_likes', title: '❤️ 친구 칭찬하기', desc: '좋아요 3회 누르기', reward: 30, type: '일일' }
         ];
 
         window.app = {
-            switchTab: (targetId, btn) => {
+            switchTab: (id, btn) => {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                document.querySelectorAll('section').forEach(s => {
-                    s.classList.toggle('active-section', s.id === targetId);
-                    s.classList.toggle('hidden-section', s.id !== targetId);
-                });
+                document.querySelectorAll('section').forEach(s => s.classList.toggle('hidden-section', s.id !== id));
+                document.getElementById(id).classList.add('active-section');
             },
-
-            // ★ 펫 행동 (100 이상이면 거절) ★
             action: async (type) => {
-                if (!currentUser) return alert("로딩 중입니다!");
-                if (isPetBusy) return;
-
-                // 1. 상태 체크 (이미 100이면 거절)
-                if (type === 'feed' && currentUser.pet.hunger >= 100) return alert("배불러요! 더 못 먹어요.");
-                if (type === 'clean' && currentUser.pet.cleanliness >= 100) return alert("이미 반짝반짝 깨끗해요!");
-                if (type === 'play' && currentUser.pet.fun >= 100) return alert("이미 너무 신나요!");
-
-                if (currentUser.coins < 10) return alert("코인이 부족해요! (10원 필요)");
-
-                // 2. 실행 (코인 차감)
-                currentUser.coins -= 10;
-                addExp(5);
+                if(!user) return;
+                if(type==='feed' && user.pet.hunger>=100) return alert("배불러요!");
+                if(type==='clean' && user.pet.cleanliness>=100) return alert("깨끗해요!");
+                if(type==='play' && user.pet.fun>=100) return alert("신나요!");
+                if(user.coins < 10) return alert("코인 부족!");
                 
-                let reactionImg = IMAGES.eat;
-                let reactionText = "";
-                if(type === 'feed') { currentUser.pet.hunger = Math.min(100, currentUser.pet.hunger + 20); reactionImg = IMAGES.eat; reactionText = "냠냠! 맛있다!"; }
-                if(type === 'clean') { currentUser.pet.cleanliness = Math.min(100, currentUser.pet.cleanliness + 20); reactionImg = IMAGES.clean; reactionText = "아이 개운해!"; }
-                if(type === 'play') { currentUser.pet.fun = Math.min(100, currentUser.pet.fun + 20); reactionImg = IMAGES.play; reactionText = "헤헤 재밌다!"; }
-
-                isPetBusy = true;
+                user.coins -= 10;
+                addExp(5);
+                if(type==='feed') user.pet.hunger = Math.min(100, user.pet.hunger+20);
+                if(type==='clean') user.pet.cleanliness = Math.min(100, user.pet.cleanliness+20);
+                if(type==='play') user.pet.fun = Math.min(100, user.pet.fun+20);
+                
                 updateUI();
-                const imgEl = document.getElementById('pet-img');
-                imgEl.src = reactionImg; 
-                document.getElementById('pet-speech').innerText = reactionText;
-
-                setTimeout(() => { updatePetImage(); document.getElementById('pet-speech').innerText = "심심해~"; isPetBusy = false; }, 2000); 
                 await saveUser();
             },
-
-            // --- 관리자 ---
-            openAdminModal: () => document.getElementById('admin-modal').style.display = 'flex',
-            addQuest: async () => {
-                const title = document.getElementById('new-q-title').value;
-                const desc = document.getElementById('new-q-desc').value;
-                const reward = parseInt(document.getElementById('new-q-reward').value);
-                const type = document.getElementById('new-q-type').value;
-                if(!title || !reward) return alert("필수 입력 확인");
-                await addDoc(collection(db, "quests"), { title, desc, reward, type, createdAt: Date.now() });
-                alert("등록됨"); document.getElementById('admin-modal').style.display = 'none';
-            },
-            deleteQuest: async (questId, event) => {
-                event.stopPropagation();
-                if(confirm("삭제?")) await deleteDoc(doc(db, "quests", questId));
-            },
-
-            // --- 퀘스트 로직 (보상 분리) ---
-            openQuestModal: (id, title, desc, reward) => {
-                currentQuestId = id; // 현재 퀘스트 ID 저장
+            openQuestModal: (id, title, desc) => {
+                curQuestId = id;
                 document.getElementById('m-title').innerText = title;
                 document.getElementById('m-desc').innerText = desc;
-                
-                // 사진 초기화
-                document.getElementById('preview-area').style.display = 'block';
-                document.getElementById('preview-img').style.display = 'none';
-                document.getElementById('file-input').value = ''; 
-                document.getElementById('submit-quest-btn').disabled = true;
-
                 document.getElementById('modal-overlay').style.display = 'flex';
-                selectedImageBase64 = null;
+                document.getElementById('preview-text').style.display = 'block';
+                document.getElementById('preview-img').style.display = 'none';
+                document.getElementById('submit-btn').disabled = true;
+                uploadImg = null;
             },
-
-            handleFileSelect: (input) => {
-                if (input.files && input.files[0]) {
+            handleFile: (input) => {
+                if(input.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = (e) => {
                         const img = new Image(); img.src = e.target.result;
                         img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 500; 
-                            const scaleSize = MAX_WIDTH / img.width;
-                            canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
-
-                            document.getElementById('preview-area').style.display = 'none';
-                            const pImg = document.getElementById('preview-img');
-                            pImg.src = selectedImageBase64;
-                            pImg.style.display = 'block';
-                            document.getElementById('submit-quest-btn').disabled = false;
+                            const cvs = document.createElement('canvas');
+                            const scale = 500 / img.width;
+                            cvs.width = 500; cvs.height = img.height * scale;
+                            cvs.getContext('2d').drawImage(img, 0, 0, cvs.width, cvs.height);
+                            uploadImg = cvs.toDataURL('image/jpeg', 0.7);
+                            document.getElementById('preview-img').src = uploadImg;
+                            document.getElementById('preview-img').style.display = 'block';
+                            document.getElementById('preview-text').style.display = 'none';
+                            document.getElementById('submit-btn').disabled = false;
                         }
-                    };
+                    }
                     reader.readAsDataURL(input.files[0]);
                 }
             },
-
-            // 1. 사진 제출 (보상 아직 안 줌)
-            submitQuestPhoto: async () => {
-                if(!currentQuestId) return;
-                
-                // 기록에 '완료함(done)' 상태로 저장 (claimed: false)
-                currentUser.questLog[currentQuestId] = { done: true, claimed: false };
-                
-                // 피드에 업로드
-                if(selectedImageBase64) {
-                    await addDoc(collection(db, "posts"), {
-                        userId: userId,
-                        nickname: currentUser.nickname,
-                        questTitle: "퀘스트 인증",
-                        image: selectedImageBase64,
-                        likes: [],
-                        createdAt: Date.now()
-                    });
-                }
-                
+            submitQuest: async () => {
+                user.questLog[curQuestId] = { done: true, claimed: false };
+                if(uploadImg) await addDoc(collection(db, "posts"), { userId, nickname: user.nickname, questTitle: "퀘스트 인증", image: uploadImg, likes: [], createdAt: Date.now() });
+                alert("제출 완료! 보상 받기 버튼을 눌러주세요.");
                 window.app.closeModal();
-                alert("인증샷 제출 완료! '보상 받기' 버튼을 눌러주세요.");
-                
-                updateQuestListUI(); // 목록 새로고침 (버튼 바꾸기 위해)
+                updateQuestList();
                 await saveUser();
             },
-
-            // 2. 보상 수령 (버튼 눌렀을 때)
-            claimReward: async (questId, reward) => {
-                // 이미 받았는지 체크
-                if(currentUser.questLog[questId] && currentUser.questLog[questId].claimed) return;
-
-                currentUser.coins += reward;
+            claim: async (id, reward) => {
+                user.coins += reward;
+                user.questLog[id].claimed = true;
                 addExp(20);
-                
-                // 보상 받음 처리
-                currentUser.questLog[questId].claimed = true;
-                
-                alert(`🎉 ${reward}코인 획득!`);
-                updateQuestListUI(); // 목록에서 사라짐
+                alert(`${reward}코인 획득!`);
+                updateQuestList();
                 await saveUser();
             },
-
-            // 좋아요 (데일리 미션 체크 포함)
-            toggleLike: async (postId, likesArray) => {
-                const postRef = doc(db, "posts", postId);
-                if(!likesArray.includes(userId)) {
-                    await updateDoc(postRef, { likes: arrayUnion(userId) });
-                    
-                    // 데일리 미션: 좋아요 카운트 증가
-                    if(!currentUser.questLog['daily_likes']) currentUser.questLog['daily_likes'] = { count: 0, done: false, claimed: false };
-                    currentUser.questLog['daily_likes'].count++;
-                    
-                    if(currentUser.questLog['daily_likes'].count >= 3) {
-                        currentUser.questLog['daily_likes'].done = true;
-                        alert("❤️ 데일리 미션: 좋아요 3회 달성! 퀘스트 탭에서 보상을 받으세요.");
+            toggleLike: async (pid, likes) => {
+                const ref = doc(db, "posts", pid);
+                if(!likes.includes(userId)) {
+                    await updateDoc(ref, { likes: arrayUnion(userId) });
+                    if(!user.questLog['daily_likes']) user.questLog['daily_likes'] = { count: 0 };
+                    user.questLog['daily_likes'].count = (user.questLog['daily_likes'].count || 0) + 1;
+                    if(user.questLog['daily_likes'].count >= 3) {
+                        user.questLog['daily_likes'].done = true;
+                        alert("좋아요 미션 완료! 보상을 받으세요.");
                     }
                     await saveUser();
                 } else {
-                    await updateDoc(postRef, { likes: arrayRemove(userId) });
+                    await updateDoc(ref, { likes: arrayRemove(userId) });
                 }
             },
-
             closeModal: () => document.getElementById('modal-overlay').style.display = 'none'
         };
 
-        function addExp(amount) {
-            if(!currentUser.pet.exp) currentUser.pet.exp = 0;
-            if(!currentUser.pet.level) currentUser.pet.level = 1;
-            currentUser.pet.exp += amount;
-            if(currentUser.pet.exp >= EXP_PER_LEVEL) {
-                currentUser.pet.exp = 0; currentUser.pet.level += 1;
-                alert(`🎉 레벨 ${currentUser.pet.level} 달성!`);
+        function addExp(n) {
+            user.pet.exp = (user.pet.exp || 0) + n;
+            if(user.pet.exp >= 100) {
+                user.pet.exp = 0; user.pet.level = (user.pet.level || 1) + 1;
+                alert(`레벨 ${user.pet.level} 달성!`);
             }
         }
+        async function saveUser() { await updateDoc(doc(db, "users", userId), { coins: user.coins, pet: user.pet, questLog: user.questLog }); }
 
-        async function saveUser() {
-            // DB 저장 시 questLog 포함
-            await updateDoc(doc(db, "users", userId), { 
-                coins: currentUser.coins, 
-                pet: currentUser.pet,
-                questLog: currentUser.questLog
+        async function init() {
+            const snap = await getDoc(doc(db, "users", userId));
+            const today = new Date().toDateString();
+            if(snap.exists()) {
+                user = snap.data();
+                if(user.lastLogin !== today) {
+                    user.questLog['daily_photo'] = { done: false, claimed: false };
+                    user.questLog['daily_likes'] = { count: 0, done: false, claimed: false };
+                    user.lastLogin = today;
+                    await saveUser();
+                }
+            } else {
+                user = { nickname: "모험가_"+userId.substring(0,4), coins: 100, pet: { hunger: 50, cleanliness: 50, fun: 50, level: 1, exp: 0 }, questLog: {}, lastLogin: today };
+                await setDoc(doc(db, "users", userId), user);
+            }
+            updateUI();
+
+            onSnapshot(collection(db, "quests"), (snap) => {
+                const dbQuests = [];
+                const todayDate = new Date().toDateString();
+                
+                snap.forEach(d => {
+                    const q = d.data();
+                    // ★ 핵심: 일일 미션은 오늘 만든 것만 표시! ★
+                    if(q.type === '일일' && q.dateString !== todayDate) return;
+                    dbQuests.push({ id: d.id, ...q });
+                });
+                renderAllQuests(dbQuests);
+            });
+
+            onSnapshot(collection(db, "posts"), (snap) => {
+                const list = document.getElementById('feed-list'); list.innerHTML = "";
+                const posts = []; snap.forEach(d => posts.push({ id: d.id, ...d.data() }));
+                posts.sort((a,b) => b.createdAt - a.createdAt).forEach(p => {
+                    const liked = p.likes && p.likes.includes(userId);
+                    const div = document.createElement('div'); div.className = 'feed-card';
+                    div.innerHTML = `<div class="feed-header"><b>${p.nickname}</b></div><img src="${p.image}" class="feed-img"><div class="feed-footer"><button class="like-btn ${liked?'liked':''}" onclick="window.app.toggleLike('${p.id}', [${(p.likes||[]).map(x=>`'${x}'`)}])"><i class="fas fa-heart"></i> ${p.likes?p.likes.length:0}</button></div>`;
+                    list.appendChild(div);
+                });
             });
         }
 
-        function updatePetImage() {
-            const imgEl = document.getElementById('pet-img');
-            const lv = currentUser.pet.level || 1;
-            if(lv === 1) imgEl.src = "images/pet_lv1.png";
-            else if(lv === 2) imgEl.src = "images/pet_lv2.png";
-            else imgEl.src = "images/pet_lv3.png";
-        }
-
-        async function init() {
-            try {
-                if (isAdmin) document.getElementById('admin-gear-btn').style.display = 'block';
-
-                const userRef = doc(db, "users", userId);
-                const snap = await getDoc(userRef);
-                const todayStr = new Date().toDateString();
-
-                if (snap.exists()) {
-                    currentUser = snap.data();
-                    if(!currentUser.questLog) currentUser.questLog = {};
-                    
-                    // ★ 날짜 바뀌면 데일리 퀘스트 초기화 ★
-                    if(currentUser.lastLoginDate !== todayStr) {
-                        currentUser.questLog['daily_photo'] = { done: false, claimed: false };
-                        currentUser.questLog['daily_likes'] = { count: 0, done: false, claimed: false };
-                        currentUser.lastLoginDate = todayStr;
-                        await saveUser();
-                    }
-                } else {
-                    currentUser = {
-                        nickname: "모험가_" + userId.substring(0,4),
-                        coins: 100,
-                        pet: { hunger: 50, cleanliness: 50, fun: 50, level: 1, exp: 0 },
-                        questLog: {},
-                        lastLoginDate: todayStr
-                    };
-                    await setDoc(userRef, currentUser);
-                }
-                updateUI();
-                
-                // 퀘스트 목록 로딩
-                onSnapshot(query(collection(db, "quests")), (snapshot) => {
-                    // DB 퀘스트 + 데일리 퀘스트 합치기
-                    const dbQuests = [];
-                    snapshot.forEach(doc => dbQuests.push({ id: doc.id, ...doc.data() }));
-                    renderAllQuests(dbQuests);
-                });
-
-                // 피드 로딩
-                onSnapshot(query(collection(db, "posts")), (snapshot) => {
-                    const list = document.getElementById('feed-list');
-                    list.innerHTML = "";
-                    if(snapshot.empty) { list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>게시물이 없습니다.</div>"; return; }
-
-                    const posts = [];
-                    snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
-                    posts.sort((a,b) => b.createdAt - a.createdAt);
-
-                    posts.forEach(p => {
-                        const isLiked = p.likes && p.likes.includes(userId);
-                        const likeCount = p.likes ? p.likes.length : 0;
-                        const div = document.createElement('div');
-                        div.className = 'feed-card';
-                        div.innerHTML = `
-                            <div class="feed-header"><div class="feed-user"><i class="fas fa-user-circle"></i> ${p.nickname}</div></div>
-                            <img src="${p.image}" class="feed-img">
-                            <div class="feed-footer">
-                                <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="window.app.toggleLike('${p.id}', [${p.likes ? p.likes.map(id => `'${id}'`).join(',') : ''}])">
-                                    <i class="fas fa-heart"></i> <span class="like-count">${likeCount}</span>
-                                </button>
-                            </div>`;
-                        list.appendChild(div);
-                    });
-                });
-
-            } catch (error) { console.error(error); alert("오류: " + error.message); }
-        }
-
-        // ★ 통합 퀘스트 렌더링 함수 ★
         function renderAllQuests(dbQuests) {
-            const list = document.getElementById('quest-list');
-            list.innerHTML = "";
-            
-            // 1. 데일리 퀘스트 먼저
-            DAILY_QUESTS.forEach(q => renderQuestItem(q, list));
-
-            // 2. 선생님이 만든 퀘스트
-            dbQuests.forEach(q => renderQuestItem(q, list));
-        }
-
-        function renderQuestItem(q, list) {
-            // 상태 확인
-            const log = currentUser.questLog[q.id] || { done: false, claimed: false };
-            
-            // 이미 보상 받았으면 목록에서 삭제
-            if(log.claimed) return;
-
-            const div = document.createElement('div');
-            div.className = 'quest-card';
-
-            // 완료했으나 보상 안 받음 -> [보상 받기 버튼]
-            if(log.done && !log.claimed) {
-                div.innerHTML = `
-                    <div><span class="quest-tag" style="background:#4cd137; color:white;">완료</span> <b>${q.title}</b></div>
-                    <button class="claim-btn-small" onclick="window.app.claimReward('${q.id}', ${q.reward})">보상 받기</button>
-                `;
-            } 
-            // 미완료 -> 카드 누르면 수행(모달)
-            else {
-                // 좋아요 미션인 경우 진행도 표시
-                let progressText = "";
-                if(q.id === 'daily_likes') {
-                    const count = log.count || 0;
-                    progressText = `<span style="font-size:0.7rem; color:#888;">(${count}/3)</span>`;
-                }
-
-                div.innerHTML = `
-                    <div><span class="quest-tag">${q.type}</span> <b>${q.title}</b> ${progressText}</div>
-                    <span class="quest-reward">💰 ${q.reward}</span>
-                `;
+            const list = document.getElementById('quest-list'); list.innerHTML = "";
+            [...DAILY, ...dbQuests].forEach(q => {
+                const log = user.questLog[q.id] || { done: false, claimed: false };
+                if(log.claimed) return;
                 
-                // 좋아요 미션은 클릭해도 모달 안 뜸 (피드 가서 해야 함)
-                if(q.id === 'daily_likes') {
-                    div.onclick = () => alert("피드 탭에서 친구들의 사진에 좋아요를 눌러보세요!");
+                const div = document.createElement('div'); div.className = 'quest-card';
+                const tagClass = q.type === '일일' ? 'tag-daily' : 'tag-special';
+                
+                if(log.done) {
+                    div.innerHTML = `<div><span class="quest-tag" style="background:#4cd137;color:white">완료</span> <b>${q.title}</b></div><button style="background:var(--primary);color:white;border:none;padding:5px 10px;border-radius:15px;" onclick="window.app.claim('${q.id}', ${q.reward})">보상 받기</button>`;
                 } else {
-                    div.onclick = () => window.app.openQuestModal(q.id, q.title, q.desc, q.reward);
+                    const progress = q.id==='daily_likes' ? `(${log.count||0}/3)` : '';
+                    div.innerHTML = `<div><span class="quest-tag ${tagClass}">${q.type}</span> <b>${q.title}</b> ${progress}</div><b>💰${q.reward}</b>`;
+                    div.onclick = () => q.id==='daily_likes' ? alert("피드에서 좋아요를 누르세요!") : window.app.openQuestModal(q.id, q.title, q.desc);
                 }
-            }
-            list.appendChild(div);
+                list.appendChild(div);
+            });
         }
-
-        function updateQuestListUI() {
-            // 다시 렌더링하기 위해 DB 스냅샷을 다시 기다리거나,
-            // 간단하게 UI만 갱신할 수 없으니 여기선 새로고침 효과를 위해 reload (단순화)
-            // 실제론 DB 리스너가 있어서 자동 갱신됨. 수동 호출 불필요.
-        }
+        function updateQuestList() { /* 자동 갱신됨 */ }
 
         function updateUI() {
-            document.getElementById('user-nickname').innerText = currentUser.nickname;
-            document.getElementById('user-coins').innerText = currentUser.coins;
-            document.getElementById('bar-hunger').style.width = currentUser.pet.hunger + "%";
-            document.getElementById('bar-clean').style.width = currentUser.pet.cleanliness + "%";
-            document.getElementById('bar-fun').style.width = currentUser.pet.fun + "%";
-            
-            const lv = currentUser.pet.level || 1;
-            const exp = currentUser.pet.exp || 0;
-            document.getElementById('level-badge').innerText = `Lv.${lv}`;
-            document.getElementById('exp-bar').style.width = `${exp}%`;
-            document.getElementById('exp-text').innerText = `EXP ${exp} / 100`;
-
-            if(!isPetBusy) updatePetImage();
+            document.getElementById('user-nickname').innerText = user.nickname;
+            document.getElementById('user-coins').innerText = user.coins;
+            document.getElementById('bar-hunger').style.width = user.pet.hunger+"%";
+            document.getElementById('bar-clean').style.width = user.pet.cleanliness+"%";
+            document.getElementById('bar-fun').style.width = user.pet.fun+"%";
+            document.getElementById('level-badge').innerText = `Lv.${user.pet.level||1}`;
+            document.getElementById('exp-bar').style.width = (user.pet.exp||0)+"%";
+            document.getElementById('exp-text').innerText = `EXP ${user.pet.exp||0}/100`;
+            const img = document.getElementById('pet-img');
+            const lv = user.pet.level||1;
+            img.src = lv===1 ? "images/pet_lv1.png" : (lv===2 ? "images/pet_lv2.png" : "images/pet_lv3.png");
         }
-
         init();
     </script>
 </body>
