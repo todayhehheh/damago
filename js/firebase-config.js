@@ -1,14 +1,14 @@
-// [중요] 사용자의 Firebase 키값을 여기에 붙여넣으세요.
+// 아까 주신 키값을 그대로 넣었습니다.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, getDocs, query, orderBy, limit, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDi5sKSc7I5gOari3jeK0gfoKCmRxTYSfY",
+  authDomain: "damago-f95d8.firebaseapp.com",
+  projectId: "damago-f95d8",
+  storageBucket: "damago-f95d8.firebasestorage.app",
+  messagingSenderId: "281460158600",
+  appId: "1:281460158600:web:4962162c9f956a05282f3d"
 };
 
 const app = initializeApp(firebaseConfig);
