@@ -1,10 +1,12 @@
+/* css/style.css 전체 수정본 */
+
 :root {
     --primary-color: #FF9F1C;
     --secondary-color: #2EC4B6;
     --bg-color: #e0e5ec;
     --card-bg: #FFFFFF;
     --text-color: #333;
-    --nav-height: 70px; /* 메뉴바 높이 */
+    --nav-height: 70px;
 }
 
 * {
@@ -12,7 +14,22 @@
     margin: 0;
     padding: 0;
     font-family: 'Noto Sans KR', sans-serif;
+    
+    /* ★ 핵심 수정 1: 텍스트 선택 원천 차단 (하얀 막대 발생 방지) ★ */
+    -webkit-user-select: none; /* 크롬/사파리 */
+    -moz-user-select: none;    /* 파이어폭스 */
+    -ms-user-select: none;     /* 인터넷 익스플로러 */
+    user-select: none;         /* 표준 */
+    
+    /* 터치 반응 속도 향상 및 더블탭 줌 방지 */
+    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+}
+
+/* 입력창은 글씨 써야 하니까 예외 허용 */
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
 body {
@@ -20,20 +37,19 @@ body {
     display: flex;
     justify-content: center;
     height: 100vh;
-    overflow: hidden;
+    overflow: hidden; /* 스크롤 방지 */
 }
 
-/* 앱 전체 컨테이너 */
+/* 앱 컨테이너 */
 .app-container {
     width: 100%;
-    max-width: 420px; /* 규격 고정 */
+    max-width: 420px; /* ★ 핵심 수정 2: 규격 고정 */
     height: 100%;
     background-color: #F7F9FC;
     position: relative;
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    margin: 0 auto; /* 중앙 정렬 */
 }
 
 /* --- [1] 헤더 --- */
@@ -65,7 +81,7 @@ body {
 
 /* 펫 섹션 */
 .pet-container { text-align: center; margin: 30px 0; }
-.pet-character { font-size: 7rem; margin: 20px 0; transition: transform 0.1s; }
+.pet-character { font-size: 7rem; margin: 20px 0; transition: transform 0.1s; cursor: pointer; }
 .pet-character:active { transform: scale(0.9); }
 .speech-bubble {
     background: #333; color: white; padding: 10px 15px; border-radius: 15px;
@@ -94,27 +110,30 @@ body {
 /* 리스트 스타일 */
 .quest-list, .feed-list { display: flex; flex-direction: column; gap: 15px; }
 .quest-card, .feed-card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.feed-img-wrapper { width: 100%; height: 250px; background: #eee; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+.feed-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.feed-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; margin-bottom: 5px; }
+.feed-footer { display: flex; justify-content: space-between; align-items: center; }
+.like-btn { border:none; background:none; font-size:1.2rem; color:#ccc; }
+.like-btn.liked { color: #e91e63; }
 
-/* --- [3] 하단 네비게이션 (규격 수정됨) --- */
+/* --- [3] 하단 네비게이션 (규격 및 터치 문제 해결) --- */
 .bottom-nav {
-    position: fixed;
+    position: absolute; /* fixed 대신 absolute로 변경하여 컨테이너 안에 가둠 */
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%); /* 화면 정중앙 고정 */
-    
-    /* ★ 규격 맞춤: 앱 너비(420px)를 넘지 않도록 설정 */
-    width: 100%;
-    max-width: 420px;
+    left: 0;
+    width: 100%; /* 부모(420px)에 꽉 차게 */
     
     height: var(--nav-height);
     background: white;
     border-top: 1px solid #eee;
+    
     display: flex;
     justify-content: space-around;
     align-items: center;
     
-    /* z-index 설정: 모달보다는 낮게, 콘텐츠보다는 높게 */
-    z-index: 900; 
+    /* ★ 핵심 수정 3: z-index 최상위 설정 (모달 제외) */
+    z-index: 100; 
 }
 
 .nav-btn {
@@ -135,12 +154,12 @@ body {
 
 /* --- [4] 모달 (팝업) --- */
 .modal-overlay {
-    position: fixed;
+    position: fixed; /* 전체 화면 덮기 */
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); /* 배경 어둡게 */
+    background: rgba(0,0,0,0.6);
     
-    /* ★ 핵심 수정: z-index를 아주 높게 설정하여 터치 가로챔 방지 ★ */
-    z-index: 2000; 
+    /* ★ 핵심 수정 4: 모달이 메뉴바보다 무조건 위에 오게 함 */
+    z-index: 9999;
     
     display: flex;
     justify-content: center;
@@ -165,11 +184,11 @@ body {
     right: 20px;
     background: none;
     border: none;
-    font-size: 2rem; /* X버튼 크기 키움 */
+    font-size: 2rem;
     color: #333;
-    padding: 10px; /* 터치 영역 확보 */
+    padding: 10px;
     cursor: pointer;
-    z-index: 2001; /* 모달 내용보다 위에 */
+    z-index: 10000;
 }
 
 /* 유틸 */
