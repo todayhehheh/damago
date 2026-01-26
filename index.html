@@ -4,31 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    
-    <title>다마고치 퀘스트 (1단계: 기초공사)</title>
-    
+    <title>다마고치 퀘스트 (2단계: 이미지 적용)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* --- [CSS 스타일] --- */
+        /* --- [기본 스타일] --- */
         :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; }
         
-        /* 1. 핵심: 터치 씹힘 및 하얀 막대 원천 차단 */
         * {
             box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif;
-            
-            /* 텍스트/이미지 선택 금지 -> 하얀 막대 안 뜸 */
-            -webkit-user-select: none !important; 
-            user-select: none !important;
-            
-            /* 터치 반응 속도 최적화 */
+            -webkit-user-select: none !important; user-select: none !important;
             -webkit-tap-highlight-color: transparent !important;
             touch-action: manipulation;
         }
 
         body { background: #ddd; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
         
-        /* 앱 화면 (규격 고정) */
         .app-container {
             width: 100%; max-width: 420px; height: 100%; background: #F7F9FC;
             position: relative; display: flex; flex-direction: column;
@@ -48,25 +39,39 @@
         .hidden-section { display: none !important; }
         .active-section { display: block !important; animation: fadeIn 0.3s; }
 
-        /* 펫 표시 영역 */
-        .pet-container { text-align: center; margin: 30px 0; min-height: 200px; }
-        .pet-character { 
-            font-size: 6rem; margin: 20px 0; transition: 0.1s; cursor: pointer; 
-            display: inline-block;
+        /* [수정됨] 펫 이미지 영역 */
+        .pet-container { 
+            text-align: center; margin: 30px 0; 
+            height: 250px; /* 높이 고정 (이미지 바뀔 때 들썩거림 방지) */
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-        .pet-character:active { transform: scale(0.9); } /* 눌리는 느낌 */
         
+        /* 사용자가 넣을 이미지 스타일 */
+        #pet-img {
+            width: 200px;  /* 이미지 크기 */
+            height: 200px;
+            object-fit: contain; /* 비율 유지 */
+            transition: transform 0.1s; /* 눌렀을 때 뿅! 효과 */
+            cursor: pointer;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); /* 그림자 효과 */
+        }
+        #pet-img:active { transform: scale(0.95); }
+
         .speech-bubble {
             background: #333; color: white; padding: 10px 15px; border-radius: 15px;
-            display: inline-block; position: relative; animation: bounce 2s infinite;
+            display: inline-block; position: relative; margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+        .speech-bubble::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent;
         }
 
-        /* 게이지바 */
+        /* 버튼 & 바 */
         .status-bars { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; }
         .progress-bar-bg { background: #eee; height: 10px; border-radius: 5px; overflow: hidden; margin-top:5px; }
         .progress-bar { height: 100%; background: var(--secondary); width: 50%; transition: width 0.3s; }
         
-        /* 버튼들 */
         .interaction-menu { display: flex; gap: 10px; }
         .action-btn {
             flex: 1; background: white; border: none; padding: 15px; border-radius: 15px;
@@ -74,7 +79,7 @@
         }
         .action-btn i { font-size: 1.5rem; color: var(--primary); margin-bottom: 5px; }
 
-        /* 하단 메뉴 (공중부양 & 안전지대 확보) */
+        /* 하단 메뉴 */
         .bottom-nav {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
             width: 90%; max-width: 380px; height: 70px;
@@ -101,8 +106,11 @@
         <main id="main-content">
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
-                    <div class="speech-bubble" id="pet-speech">로딩이 끝나면 말할게!</div>
-                    <div class="pet-character" id="pet-character">⏳</div>
+                    <div class="speech-bubble" id="pet-speech">안녕! 난 너의 펫이야!</div>
+                    
+                    <img id="pet-img" src="images/pet_normal.png" 
+                         onerror="this.src='https://via.placeholder.com/200?text=No+Image'" 
+                         alt="펫 캐릭터">
                 </div>
 
                 <div class="status-bars">
@@ -136,7 +144,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 1. 설정 (사용자님 새 프로젝트 키)
+        // 키값 유지
         const firebaseConfig = {
             apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E",
             authDomain: "dama-ec569.firebaseapp.com",
@@ -150,56 +158,77 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 2. 전역 변수 설정
         let currentUser = null;
-        // 주소창에 ?id=... 가 없으면 'test_user'로 자동 로그인 (멈춤 방지)
         let userId = new URLSearchParams(window.location.search).get('id');
         if (!userId) userId = "test_user";
 
-        // 3. 앱 기능 모음 (HTML에서 바로 부를 수 있게 window에 등록)
+        // ★ 이미지 경로 설정 (파일명과 똑같아야 함!)
+        const IMAGES = {
+            normal: "images/pet_normal.png",
+            eat:    "images/pet_eat.png",
+            clean:  "images/pet_bath.png",
+            play:   "images/pet_play.png"
+        };
+
+        // 중복 클릭 방지용 변수
+        let isPetBusy = false; 
+
         window.app = {
-            // 탭 전환
             switchTab: (targetId, btn) => {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 document.querySelectorAll('section').forEach(s => {
-                    if(s.id === targetId) {
-                        s.classList.remove('hidden-section');
-                        s.classList.add('active-section');
-                    } else {
-                        s.classList.add('hidden-section');
-                        s.classList.remove('active-section');
-                    }
+                    if(s.id === targetId) { s.classList.remove('hidden-section'); s.classList.add('active-section'); }
+                    else { s.classList.add('hidden-section'); s.classList.remove('active-section'); }
                 });
             },
 
-            // 행동 (밥주기 등)
+            // ★ 행동 함수 (이미지 교체 로직 포함)
             action: async (type) => {
-                if (!currentUser) return alert("데이터 로딩 중입니다. 잠시만요!");
-                if (currentUser.coins < 10) return alert("코인이 부족해요! (10코인 필요)");
+                if (!currentUser) return alert("로딩 중입니다!");
+                if (isPetBusy) return; // 펫이 뭐 하고 있으면 클릭 무시
 
-                // 코인 차감 및 스탯 증가
+                if (currentUser.coins < 10) return alert("코인이 부족해요! (10원 필요)");
+
+                // 1. 코인 차감 & 상태 변화
                 currentUser.coins -= 10;
-                let speechText = "";
+                let reactionImg = IMAGES.normal;
+                let reactionText = "";
 
                 if(type === 'feed') {
                     currentUser.pet.hunger = Math.min(100, currentUser.pet.hunger + 20);
-                    speechText = "냠냠! 맛있다!";
+                    reactionImg = IMAGES.eat; // 먹는 짤
+                    reactionText = "냠냠! 맛있다!";
                 }
                 if(type === 'clean') {
                     currentUser.pet.cleanliness = Math.min(100, currentUser.pet.cleanliness + 20);
-                    speechText = "아이 개운해!";
+                    reactionImg = IMAGES.clean; // 씻는 짤
+                    reactionText = "아이 개운해!";
                 }
                 if(type === 'play') {
                     currentUser.pet.fun = Math.min(100, currentUser.pet.fun + 20);
-                    speechText = "헤헤 재밌다!";
+                    reactionImg = IMAGES.play; // 노는 짤
+                    reactionText = "헤헤 재밌다!";
                 }
 
-                // 화면 갱신
+                // 2. 화면 즉시 갱신 (이미지 바꿈!)
+                isPetBusy = true; // "나 바쁨" 상태
                 updateUI();
-                document.getElementById('pet-speech').innerText = speechText;
                 
-                // DB 저장 (백그라운드)
+                const imgEl = document.getElementById('pet-img');
+                const speechEl = document.getElementById('pet-speech');
+                
+                imgEl.src = reactionImg; // 이미지 교체
+                speechEl.innerText = reactionText;
+
+                // 3. 2초 뒤에 원래대로 복귀 (setTimeout)
+                setTimeout(() => {
+                    imgEl.src = IMAGES.normal;
+                    speechEl.innerText = "심심해~";
+                    isPetBusy = false; // "이제 안 바쁨"
+                }, 2000); 
+
+                // 4. DB 저장
                 await updateDoc(doc(db, "users", userId), {
                     coins: currentUser.coins,
                     pet: currentUser.pet
@@ -207,7 +236,6 @@
             }
         };
 
-        // 4. 초기화 함수 (자동 실행)
         async function init() {
             try {
                 const userRef = doc(db, "users", userId);
@@ -216,37 +244,35 @@
                 if (snap.exists()) {
                     currentUser = snap.data();
                 } else {
-                    // 신규 유저 생성
                     currentUser = {
                         nickname: "모험가_" + userId,
                         coins: 100,
-                        pet: { hunger: 50, cleanliness: 50, fun: 50, characterId: 'egg' }
+                        pet: { hunger: 50, cleanliness: 50, fun: 50, characterId: 'custom' }
                     };
                     await setDoc(userRef, currentUser);
                 }
-                
-                // 로딩 완료 후 UI 그리기
-                updateUI(); 
-                document.getElementById('pet-character').innerText = "🥚"; // 일단 알 모양
+                updateUI();
+                document.getElementById('quest-list').innerHTML = `
+                    <div style="background:white; padding:15px; border-radius:10px;">
+                        <h3>💧 물 마시기</h3>
+                        <p style="color:#666; font-size:0.8rem;">보상: 30 코인</p>
+                    </div>`;
 
             } catch (error) {
-                console.error("에러 발생:", error);
-                document.getElementById('pet-speech').innerText = "서버 연결 실패 ㅠㅠ";
+                console.error(error);
+                document.getElementById('pet-speech').innerText = "오류 발생!";
             }
         }
 
-        // 5. 화면 갱신 함수
         function updateUI() {
             document.getElementById('user-nickname').innerText = currentUser.nickname;
             document.getElementById('user-coins').innerText = currentUser.coins;
-            document.getElementById('pet-speech').innerText = "안녕! 난 준비됐어!";
             
             document.getElementById('bar-hunger').style.width = currentUser.pet.hunger + "%";
             document.getElementById('bar-clean').style.width = currentUser.pet.cleanliness + "%";
             document.getElementById('bar-fun').style.width = currentUser.pet.fun + "%";
         }
 
-        // 실행!
         init();
     </script>
 </body>
