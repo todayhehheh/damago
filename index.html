@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    <title>다마고치 퀘스트 (디버깅 모드)</title>
+    <title>다마고치 퀘스트 (오류 수정 완료)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
@@ -37,7 +37,11 @@
             display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
+        /* ★ 닉네임과 코인/설정을 양쪽으로 정렬하기 위한 스타일 ★ */
+        .header-left { display: flex; align-items: center; font-weight: bold; font-size: 1.1rem; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+
+        .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
         .admin-btn { border: none; background: none; font-size: 1.2rem; color: #ccc; cursor: pointer; display: none; }
 
         /* 메인 콘텐츠 */
@@ -134,8 +138,13 @@
 
     <div class="app-container">
         <header class="app-header">
-            <span class="coin-display">💰 <span id="user-coins">0</span></span>
-            <button class="admin-btn" id="admin-gear-btn" onclick="window.app.openAdminModal()"><i class="fas fa-cog"></i></button>
+            <div class="header-left">
+                <span id="user-nickname">로딩중...</span>
+            </div>
+            <div class="header-right">
+                <span class="coin-display">💰 <span id="user-coins">0</span></span>
+                <button class="admin-btn" id="admin-gear-btn" onclick="window.app.openAdminModal()"><i class="fas fa-cog"></i></button>
+            </div>
         </header>
 
         <main id="main-content">
@@ -366,7 +375,7 @@
                 }
                 updateUI();
                 
-                // ★ 여기가 수정됨: 정렬 기능(orderBy)을 잠시 뺐습니다. (에러 방지용)
+                // 에러 방지를 위해 일단 정렬 없이 가져옵니다
                 const qQuery = query(collection(db, "quests")); 
                 
                 onSnapshot(qQuery, (snapshot) => {
@@ -374,10 +383,10 @@
                     list.innerHTML = ""; 
 
                     if(snapshot.empty) {
-                        list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>등록된 퀘스트가 없습니다.</div>";
+                        list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>등록된 퀘스트가 없습니다.<br>(선생님만 추가 가능)</div>";
                     }
 
-                    snapshot.forEach(qDoc => { // doc 대신 qDoc으로 이름 변경 (충돌 방지)
+                    snapshot.forEach(qDoc => { 
                         const q = qDoc.data();
                         const div = document.createElement('div');
                         div.className = 'quest-card';
@@ -396,18 +405,20 @@
 
             } catch (error) {
                 console.error(error);
-                // ★ 여기에 진짜 에러 메시지가 뜹니다 ★
-                document.getElementById('pet-speech').innerText = "에러: " + error.message;
-                alert("오류 상세: " + error.message);
+                document.getElementById('pet-speech').innerText = "오류: " + error.message;
+                alert("오류: " + error.message);
             }
         }
 
         function updateUI() {
+            // ★ 여기가 문제였습니다! (user-nickname이 없어서 발생)
+            // 이제 HTML에 다시 추가했으니 정상 작동합니다.
             document.getElementById('user-nickname').innerText = currentUser.nickname;
             document.getElementById('user-coins').innerText = currentUser.coins;
             document.getElementById('bar-hunger').style.width = currentUser.pet.hunger + "%";
             document.getElementById('bar-clean').style.width = currentUser.pet.cleanliness + "%";
             document.getElementById('bar-fun').style.width = currentUser.pet.fun + "%";
+            document.getElementById('pet-speech').innerText = "안녕! 퀘스트를 확인해봐!";
         }
 
         init();
