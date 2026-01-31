@@ -1,0 +1,65 @@
+:root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; -webkit-tap-highlight-color: transparent; }
+body { background: #ddd; display: flex; justify-content: center; height: 100vh; overflow: hidden; margin: 0; }
+.app-container { width: 100%; max-width: 420px; height: 100%; background: #F7F9FC; position: relative; display: flex; flex-direction: column; }
+
+/* 헤더 */
+.app-header { height: 60px; padding: 0 20px; background: white; z-index: 10; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+#user-nickname { cursor: pointer; border-bottom: 1px dashed #999; }
+.coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
+
+/* 메인 콘텐츠 */
+#main-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
+section { display: none; } 
+section.active-section { display: block; animation: fadeIn 0.3s; }
+
+/* 펫 영역 */
+.pet-container { text-align: center; margin: 20px 0; }
+#pet-img { width: 200px; height: 200px; object-fit: contain; }
+.speech-bubble { background: #333; color: white; padding: 10px; border-radius: 15px; display: inline-block; margin-bottom: 10px; animation: bounce 2s infinite; min-width: 120px; position: relative; }
+.speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent; }
+
+/* 상태바 */
+.level-info { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+.exp-bar-bg { flex: 1; height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; }
+.exp-bar { height: 100%; background: linear-gradient(90deg, #FF9F1C, #FFD700); width: 0%; transition: width 0.5s; }
+.status-bars { background: white; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
+.progress-bar-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; margin-top:5px; margin-bottom: 10px;}
+.progress-bar { height: 100%; background: var(--secondary); width: 50%; }
+
+/* 버튼 */
+.interaction-menu { display: flex; gap: 10px; }
+.action-btn { flex: 1; background: white; border: none; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
+.action-btn i { font-size: 1.5rem; color: var(--primary); display: block; margin-bottom: 5px; }
+
+/* 카드 스타일 */
+.quest-card, .feed-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.quest-card { display: flex; justify-content: space-between; align-items: center; }
+.quest-tag { font-size: 0.8rem; padding: 3px 8px; border-radius: 5px; margin-right: 5px; }
+.tag-daily { background: #E3F2FD; color: #2196F3; } 
+.tag-special { background: #FFF3E0; color: #FF9800; }
+.tag-done { background: #eee; color: #999; }
+.claim-btn-small { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; cursor: pointer; animation: pulse 1.5s infinite; }
+
+/* 피드 */
+.feed-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
+.feed-img { width: 100%; height: 250px; object-fit: cover; border-radius: 10px; background: #eee; margin-top: 5px; }
+.like-btn { border: none; background: none; color: #ccc; font-size: 1.2rem; cursor: pointer; margin-top: 10px; display: flex; align-items: center; gap: 5px; }
+.like-btn.liked { color: var(--heart); }
+
+/* 하단 메뉴 & 모달 */
+.bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 420px; height: 70px; background: white; display: flex; border-top: 1px solid #eee; z-index: 900; }
+.nav-btn { flex: 1; border: none; background: none; color: #ccc; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.nav-btn.active { color: var(--secondary); font-weight: bold; }
+.nav-btn i { font-size: 1.4rem; margin-bottom: 3px; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; }
+.modal-content { background: white; width: 90%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; }
+.btn-primary { width: 100%; padding: 12px; background: var(--secondary); color: white; border: none; border-radius: 10px; margin-top: 10px; font-weight: bold; cursor: pointer; }
+.btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+.toast-msg { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; z-index: 3000; animation: fadeUp 2s forwards; text-align: center; min-width: 200px; }
+@keyframes fadeUp { 0% { opacity: 0; transform: translate(-50%, 20px); } 20% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
