@@ -7,11 +7,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background: #f0f2f5; font-family: 'Noto Sans KR', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; color: #333; }
         .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input, select { padding: 10px; width: 100%; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { padding: 10px 20px; background: #2EC4B6; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        input, select { padding: 10px; width: 100%; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { padding: 10px 20px; background: #2EC4B6; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #25a499; }
         .del-btn { background: #e74c3c; float: right; font-size: 0.8rem; padding: 5px 10px; }
-        .post-item { border-bottom: 1px solid #eee; padding: 10px; display: flex; align-items: center; }
+        .list-item { border-bottom: 1px solid #eee; padding: 10px; display: flex; align-items: center; justify-content: space-between; }
         .post-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px; background: #eee; }
     </style>
 </head>
@@ -20,67 +22,105 @@
     
     <div class="card">
         <h3>📝 퀘스트 추가</h3>
-        <select id="q-type"><option value="일일">일일 미션 (내일 사라짐)</option><option value="특별">특별 미션 (계속 유지)</option></select>
-        <input id="q-title" placeholder="제목 (예: 수학익힘책 20p)">
-        <input id="q-desc" placeholder="설명 (예: 풀고나서 인증샷)">
-        <input id="q-reward" type="number" placeholder="보상 코인">
+        <select id="q-type">
+            <option value="일일">일일 미션 (내일 사라짐)</option>
+            <option value="특별">특별 미션 (계속 유지)</option>
+        </select>
+        <input id="q-title" placeholder="제목 (예: 수학익힘책 20p 풀기)">
+        <input id="q-desc" placeholder="설명 (예: 다 풀고 인증샷 찍어올리기)">
+        <input id="q-reward" type="number" placeholder="보상 코인 (예: 100)">
         <button onclick="addQ()">등록하기</button>
     </div>
 
     <div class="card">
-        <h3>📋 퀘스트 목록</h3>
-        <div id="q-list"></div>
+        <h3>📋 등록된 퀘스트 목록</h3>
+        <div id="q-list">불러오는 중...</div>
     </div>
 
     <div class="card">
-        <h3>📸 피드 관리 (이상한 사진 삭제)</h3>
-        <div id="f-list"></div>
+        <h3>📸 학생들 게시물 관리 (삭제)</h3>
+        <div id="f-list">불러오는 중...</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ★ Firebase 설정 (본인 키로 변경 필수) ★
+        // ★ js/config.js와 동일한 키 사용
         const config = { apiKey: "AIzaSyDvT-74P4tT1q50HSrQaND_4U6wd8k1D-E", authDomain: "dama-ec569.firebaseapp.com", projectId: "dama-ec569", storageBucket: "dama-ec569.firebasestorage.app", messagingSenderId: "328651666527", appId: "1:328651666527:web:4cccf725a6ef061e2b97ea", measurementId: "G-XMVX5EZ1SL" };
         const db = getFirestore(initializeApp(config));
 
+        // 1. 퀘스트 추가
         window.addQ = async () => {
             const type = document.getElementById('q-type').value;
             const title = document.getElementById('q-title').value;
             const desc = document.getElementById('q-desc').value;
             const reward = Number(document.getElementById('q-reward').value);
-            if(!title) return alert("제목 입력!");
+
+            if(!title || !reward) return alert("제목과 보상을 입력해주세요!");
             
-            await addDoc(collection(db, "quests"), { type, title, desc, reward, createdAt: Date.now(), dateString: new Date().toDateString() });
-            alert("등록 완료");
-            document.getElementById('q-title').value = "";
+            try {
+                await addDoc(collection(db, "quests"), { 
+                    type, title, desc, reward, 
+                    createdAt: Date.now(), 
+                    dateString: new Date().toDateString() 
+                });
+                alert("퀘스트가 등록되었습니다.");
+                document.getElementById('q-title').value = "";
+                document.getElementById('q-desc').value = "";
+                document.getElementById('q-reward').value = "";
+            } catch(e) {
+                alert("에러: " + e.message);
+            }
         };
 
+        // 2. 삭제 기능
         window.del = async (col, id) => {
-            if(confirm("정말 삭제합니까? 복구할 수 없습니다.")) await deleteDoc(doc(db, col, id));
+            if(confirm("정말 삭제하시겠습니까? (복구 불가)")) {
+                await deleteDoc(doc(db, col, id));
+            }
         };
 
+        // 3. 퀘스트 목록 로딩
         onSnapshot(query(collection(db, "quests"), orderBy("createdAt", "desc")), snap => {
-            document.getElementById('q-list').innerHTML = "";
+            const list = document.getElementById('q-list');
+            list.innerHTML = "";
+            if(snap.empty) list.innerHTML = "<p style='color:#999'>등록된 퀘스트가 없습니다.</p>";
+            
             snap.forEach(d => {
                 const q = d.data();
-                document.getElementById('q-list').innerHTML += `<div style="border-bottom:1px solid #eee; padding:10px;">[${q.type}] <b>${q.title}</b> (${q.reward}코인) <button class="del-btn" onclick="del('quests','${d.id}')">삭제</button></div>`;
+                const style = q.type === '일일' ? 'color:#2196F3' : 'color:#FF9800';
+                list.innerHTML += `
+                    <div class="list-item">
+                        <div>
+                            <b style="${style}">[${q.type}]</b> ${q.title} 
+                            <span style="color:#f1c40f; font-weight:bold;">(${q.reward}코인)</span>
+                        </div>
+                        <button class="del-btn" onclick="del('quests','${d.id}')">삭제</button>
+                    </div>`;
             });
         });
 
+        // 4. 피드 목록 로딩
         onSnapshot(query(collection(db, "posts"), orderBy("date", "desc")), snap => {
-            document.getElementById('f-list').innerHTML = "";
+            const list = document.getElementById('f-list');
+            list.innerHTML = "";
+            if(snap.empty) list.innerHTML = "<p style='color:#999'>게시물이 없습니다.</p>";
+
             snap.forEach(d => {
                 const p = d.data();
-                // ★ nickname, image 로 불러옴 (통일) ★
-                const nick = p.nickname || p.nick || "이름없음";
-                const img = p.image || p.img || ""; 
+                const nick = p.nickname || p.nick || "익명";
+                const img = p.image || p.img || "";
                 
-                document.getElementById('f-list').innerHTML += `
-                    <div class="post-item">
-                        <img src="${img}" class="post-thumb" onerror="this.src='https://via.placeholder.com/50?text=X'"> 
-                        <div style="flex:1"><b>${nick}</b>: ${p.title}</div>
+                list.innerHTML += `
+                    <div class="list-item">
+                        <div style="display:flex; align-items:center;">
+                            <img src="${img}" class="post-thumb" onerror="this.src='https://via.placeholder.com/50'">
+                            <div>
+                                <b>${nick}</b>: ${p.title} <br>
+                                <span style="font-size:0.8rem; color:#888;">${new Date(p.date).toLocaleString()}</span>
+                            </div>
+                        </div>
                         <button class="del-btn" onclick="del('posts','${d.id}')">삭제</button>
                     </div>`;
             });
