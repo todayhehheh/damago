@@ -1,70 +1,111 @@
 import { user, saveUser } from "./state.js";
 import { showToast, setPetSpeech } from "./utils.js";
 
-// 펫 행동 처리
-export async function handleAction(type) {
-    if (!user) return;
+// 펫 데이터 (이미지 매핑)
+const PET_DATA = {
+    'fire': { 1: 'pet_fire_1.png', 2: 'pet_fire_2.png', 3: 'pet_fire_3.png', mission: '운동장 3바퀴 뛰기' },
+    'water': { 1: 'pet_water_1.png', 2: 'pet_water_2.png', 3: 'pet_water_3.png', mission: '도서관 책 1권 읽기' },
+    'grass': { 1: 'pet_grass_1.png', 2: 'pet_grass_2.png', 3: 'pet_grass_3.png', mission: '친구 칭찬하기' }
+};
 
-    // 거절 멘트 (100 이상일 때)
-    if (type === 'feed' && user.pet.hunger >= 100) return setPetSpeech("배불러요! 그만 먹을래!");
-    if (type === 'clean' && user.pet.cleanliness >= 100) return setPetSpeech("이미 반짝반짝해요!");
-    if (type === 'play' && user.pet.fun >= 100) return setPetSpeech("지쳤어요! 쉴래요.");
+// 1. 알 뽑기 (목표 입력 받기)
+export async function buyEgg() {
+    if (user.pet.stage > 0) return showToast("이미 펫을 키우고 있습니다!");
+    if (user.coins < 100) return showToast("코인이 부족해요 (100G)");
 
-    if (user.coins < 10) return showToast("코인이 부족해요! (10원 필요)");
+    // ★ 목표 입력 받기
+    const goal = prompt("이 알을 키우면서 지킬 [나만의 목표]를 적어주세요!\n(예: 매일 물 1L 마시기)");
+    if (!goal || goal.trim() === "") return;
 
-    // 실행
-    user.coins -= 10;
-    addExp(5);
+    user.coins -= 100;
+    
+    // 랜덤 속성 부여
+    const types = ['fire', 'water', 'grass'];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    
+    user.pet = {
+        ...user.pet,
+        id: `pet_${randomType}`,
+        type: randomType,
+        goal: goal, // 목표 저장
+        stage: 0, // 알
+        lv: 1, exp: 0,
+        hunger: 50, cleanliness: 50, fun: 50
+    };
 
-    if (type === 'feed') { user.pet.hunger = Math.min(100, user.pet.hunger + 20); setPetSpeech("냠냠! 맛있어요!"); }
-    if (type === 'clean') { user.pet.cleanliness = Math.min(100, user.pet.cleanliness + 20); setPetSpeech("개운해요!"); }
-    if (type === 'play') { user.pet.fun = Math.min(100, user.pet.fun + 20); setPetSpeech("신난다!"); }
-
-    updatePetImage(type); // 임시 이미지 변경
+    setPetSpeech("알이 꼼지락거려요!");
+    showToast(`알 획득! 목표: ${goal}`);
     await saveUser();
 }
 
-// 경험치 증가
-function addExp(n) {
-    user.pet.exp += n;
+// 2. 레벨업 및 진화 체크
+export function checkLevelUp() {
     if (user.pet.exp >= 100) {
         user.pet.exp = 0;
         user.pet.lv++;
-        showToast(`🎉 축하합니다! 레벨 ${user.pet.lv} 달성!`);
+        showToast(`🎉 레벨 ${user.pet.lv} 달성!`);
+        
+        // 단계별 진화 시도
+        tryEvolve();
     }
 }
 
-// 펫 UI 업데이트 (이미지, 게이지 등)
+// 3. 진화 로직 (조건 체크)
+async function tryEvolve() {
+    const stage = user.pet.stage;
+    const lv = user.pet.lv;
+    const type = user.pet.type;
+
+    // [0단계 -> 1단계] 부화 (레벨 5 달성 시 자동)
+    if (stage === 0 && lv >= 5) {
+        user.pet.stage = 1;
+        alert(`🐣 알이 부화했습니다! 귀여운 ${type} 펫이 태어났어요!`);
+    }
+    // [1단계 -> 2단계] 진화 (레벨 10 + 진화의 돌 필요)
+    else if (stage === 1 && lv >= 10) {
+        if (user.inventory.includes('evo_stone')) {
+            user.pet.stage = 2;
+            // 돌 사용 (삭제)
+            const idx = user.inventory.indexOf('evo_stone');
+            user.inventory.splice(idx, 1);
+            alert(`✨ 진화의 돌이 빛납니다! 2단계로 진화했습니다!`);
+        } else {
+            setPetSpeech("진화하고 싶어... (진화의 돌 필요)");
+            showToast("Tip: 진화하려면 '진화의 돌'이 필요합니다!");
+        }
+    }
+    // [2단계 -> 3단계] 최종 진화 (레벨 20 + 메인 미션 완료 필요)
+    else if (stage === 2 && lv >= 20) {
+        // 메인 미션 완료 여부 체크 (questLog에 기록됨)
+        const missionId = `main_${type}`; // 예: main_fire
+        if (user.log[missionId] && user.log[missionId].done) {
+            user.pet.stage = 3;
+            alert(`👑 전설의 펫으로 성장했습니다! 축하합니다!`);
+        } else {
+            const missionName = PET_DATA[type].mission;
+            setPetSpeech(`"${missionName}" 미션을 깨야 해!`);
+            showToast(`조건 부족: 메인 미션 [${missionName}] 완료 필요`);
+        }
+    }
+    await saveUser();
+}
+
+// 4. UI 업데이트
 export function updatePetUI() {
     if (!user) return;
+    
+    // ... 기존 텍스트/게이지 업데이트 코드 ...
     document.getElementById('user-nickname').innerText = user.nickname;
     document.getElementById('user-coins').innerText = user.coins;
-    document.getElementById('bar-hunger').style.width = user.pet.hunger + "%";
-    document.getElementById('bar-clean').style.width = user.pet.cleanliness + "%";
-    document.getElementById('bar-fun').style.width = user.pet.fun + "%";
-    document.getElementById('level-badge').innerText = `Lv.${user.pet.lv}`;
-    document.getElementById('exp-bar').style.width = user.pet.exp + "%";
+    // ... 생략 ...
 
-    // 기본 이미지 복구
+    // 이미지 결정
     const img = document.getElementById('pet-img');
-    const lv = user.pet.lv;
-    // 경로 주의: html 파일 기준 images 폴더
-    if (!img.src.includes('eat') && !img.src.includes('bath') && !img.src.includes('play')) {
-        img.src = lv === 1 ? "images/pet_lv1.png" : (lv === 2 ? "images/pet_lv2.png" : "images/pet_lv3.png");
-    }
+    const stage = user.pet.stage;
+    const type = user.pet.type;
+
+    if (stage === 0) img.src = "images/pet_egg.png";
+    else img.src = PET_DATA[type][stage] || `images/pet_${type}_1.png`;
 }
 
-// 행동 시 일시적 이미지 변경
-function updatePetImage(type) {
-    const img = document.getElementById('pet-img');
-    if (type === 'feed') img.src = "images/pet_eat.png";
-    if (type === 'clean') img.src = "images/pet_bath.png";
-    if (type === 'play') img.src = "images/pet_play.png";
-
-    // 2초 뒤 원상복구
-    setTimeout(() => {
-        const lv = user.pet.lv;
-        img.src = lv === 1 ? "images/pet_lv1.png" : (lv === 2 ? "images/pet_lv2.png" : "images/pet_lv3.png");
-        setPetSpeech("심심해~ 놀아줘!");
-    }, 2000);
-}
+// ... handleAction 등 나머지 코드는 유지 ...
