@@ -1,26 +1,24 @@
 import { user, saveUser } from "./state.js";
-import { showToast, setPetSpeech, showRewardPopup } from "./utils.js";
+import { showToast, setPetSpeech, showRewardPopup, showInputModal } from "./utils.js";
 
-// 펫 이미지 데이터 (속성별 성장 이미지)
 const PET_DATA = {
     'fire': { 1: 'images/pet_fire_1.png', 2: 'images/pet_fire_2.png', 3: 'images/pet_fire_3.png', mission: '운동장 3바퀴 뛰기' },
     'water': { 1: 'images/pet_water_1.png', 2: 'images/pet_water_2.png', 3: 'images/pet_water_3.png', mission: '물 1L 마시기' },
     'grass': { 1: 'images/pet_grass_1.png', 2: 'images/pet_grass_2.png', 3: 'images/pet_grass_3.png', mission: '채소 반찬 먹기' }
 };
 
-// 1. 알 뽑기 (가격 30G)
+// 1. 알 뽑기
 export async function buyEgg() {
+    // 펫이 이미 있으면 안 됨
     if (user.pet.stage > 0) return showToast("이미 펫을 키우고 있습니다!");
-    
-    // ★ 튜토리얼 체크: 목표 설정을 안 했으면 알 구매 불가
-    if (!user.pet.goal) return showToast("먼저 [목표 정하기] 버튼을 눌러주세요!");
-    
-    // 코인 체크 (30G)
-    if (user.coins < 30) return showToast("코인이 부족해요 (30G 필요)\n튜토리얼을 완료해 코인을 모으세요!");
+    if (user.coins < 30) return showToast("코인이 부족해요 (30G)");
+
+    // ★ 목표 입력 (커스텀 모달)
+    const goal = await showInputModal("목표 정하기", "이번 펫과 함께 지킬 목표는 무엇인가요?");
+    if (!goal) return;
 
     user.coins -= 30;
     
-    // 랜덤 속성 부여
     const types = ['fire', 'water', 'grass'];
     const randomType = types[Math.floor(Math.random() * types.length)];
     
@@ -28,18 +26,17 @@ export async function buyEgg() {
         ...user.pet,
         id: `pet_${randomType}`,
         type: randomType,
-        stage: 0, 
-        lv: 1, exp: 0,
+        goal: goal,
+        stage: 0, lv: 1, exp: 0,
         hunger: 50, cleanliness: 50, fun: 50
     };
 
     setPetSpeech("알이 생겼어요!");
-    // ★ 알 획득 축하 팝업
     showRewardPopup(0, `알 획득! (${randomType.toUpperCase()} 속성)`);
     await saveUser();
 }
 
-// 2. 진화의 돌 구매 (200G)
+// 2. 진화의 돌 구매
 export async function buyStone() {
     if (user.inventory.includes('evo_stone')) return showToast("이미 가지고 있습니다.");
     if (user.coins < 200) return showToast("코인이 부족해요 (200G)");
@@ -47,29 +44,25 @@ export async function buyStone() {
     if(confirm("200코인으로 [진화의 돌]을 구매하시겠습니까?")) {
         user.coins -= 200;
         user.inventory.push('evo_stone');
-        
         showRewardPopup(0, "✨ 진화의 돌 획득!");
         await saveUser();
-        tryEvolve(); // 혹시 바로 진화 가능한지 체크
+        tryEvolve();
     }
 }
 
-// 3. 행동 (밥주기, 씻기기, 놀기)
+// 3. 행동
 export async function handleAction(type) {
     if (!user) return;
     if (user.pet.stage === 0) return showToast("알은 아직 아무것도 할 수 없어요! (레벨 5에 부화)");
-
     if (type === 'feed' && user.pet.hunger >= 100) return setPetSpeech("배불러요!");
     if (user.coins < 10) return showToast("코인이 부족해요! (10G)");
 
     user.coins -= 10;
-    
-    // 경험치 증가
     user.pet.exp += 10; 
     if (user.pet.exp >= 100) {
         user.pet.exp = 0; user.pet.lv++;
         showToast(`🎉 레벨 ${user.pet.lv} 달성!`);
-        tryEvolve(); // 레벨업 시 진화 시도
+        tryEvolve();
     }
 
     if (type === 'feed') user.pet.hunger = Math.min(100, user.pet.hunger + 20);
@@ -80,30 +73,25 @@ export async function handleAction(type) {
     await saveUser();
 }
 
-// 4. 진화 로직 (단계별 조건)
+// 4. 진화
 async function tryEvolve() {
     const stage = user.pet.stage;
     const lv = user.pet.lv;
     const type = user.pet.type;
 
-    // [0 -> 1] 부화 (레벨 5)
     if (stage === 0 && lv >= 5) {
         user.pet.stage = 1;
         showRewardPopup(0, `🐣 알이 부화했습니다!`);
-    } 
-    // [1 -> 2] 성장 (레벨 10 + 돌 필요)
-    else if (stage === 1 && lv >= 10) {
+    } else if (stage === 1 && lv >= 10) {
         if (user.inventory.includes('evo_stone')) {
             user.pet.stage = 2;
             const idx = user.inventory.indexOf('evo_stone');
-            user.inventory.splice(idx, 1); // 돌 소모
+            user.inventory.splice(idx, 1);
             showRewardPopup(0, `✨ 2단계로 진화했습니다!`);
         } else {
-            setPetSpeech("진화하고 싶어... (돌 필요)");
+            setPetSpeech("진화하고 싶어...");
         }
-    } 
-    // [2 -> 3] 최종 진화 (레벨 20 + 메인 미션)
-    else if (stage === 2 && lv >= 20) {
+    } else if (stage === 2 && lv >= 20) {
         const missionId = `main_${type}`;
         if (user.log[missionId] && user.log[missionId].done) {
             user.pet.stage = 3;
@@ -115,57 +103,45 @@ async function tryEvolve() {
     await saveUser();
 }
 
-// 5. 경험치 추가 (외부 호출용)
-export function addExp(n) {
-    user.pet.exp += n;
-    if (user.pet.exp >= 100) {
-        user.pet.exp = 0; user.pet.lv++;
-        showToast(`🎉 레벨 ${user.pet.lv} 달성!`);
-        tryEvolve();
-    }
-}
-
-// 6. UI 업데이트 (이미지 및 튜토리얼 버튼)
+// 5. UI 업데이트 (상점 버튼 제어 포함)
 export function updatePetUI() {
     if (!user) return;
     document.getElementById('user-nickname').innerText = user.nickname;
     document.getElementById('user-coins').innerText = user.coins;
     
-    // 게이지
     document.getElementById('bar-hunger').style.width = user.pet.hunger + "%";
     document.getElementById('bar-clean').style.width = user.pet.cleanliness + "%";
     document.getElementById('bar-fun').style.width = user.pet.fun + "%";
     document.getElementById('level-badge').innerText = `Lv.${user.pet.lv}`;
     document.getElementById('exp-bar').style.width = user.pet.exp + "%";
 
-    // 이미지
     const img = document.getElementById('pet-img');
     const stage = user.pet.stage;
     const type = user.pet.type;
     
     if (stage === 0) img.src = "images/pet_egg.png";
     else if (PET_DATA[type] && PET_DATA[type][stage]) img.src = PET_DATA[type][stage];
-    else img.src = "images/pet_lv1.png"; // 기본값
+    else img.src = "images/pet_lv1.png";
 
-    // ★ 튜토리얼 버튼 상태 업데이트 (완료되면 회색 처리 + 체크아이콘)
-    const btnName = document.getElementById('btn-set-name');
-    const btnGoal = document.getElementById('btn-set-goal');
-    
-    if (user.tutorial.nameSet) {
-        btnName.classList.add('done');
-        btnName.style.background = "#eee";
-        btnName.style.color = "#999";
-        btnName.style.border = "1px solid #ccc";
-        btnName.onclick = null;
-        btnName.innerHTML = `<i class="fas fa-check"></i> 닉네임 설정 완료`;
+    // ★ [NEW] 상점 버튼 표시 조건
+    const btnEgg = document.getElementById('btn-buy-egg');
+    const btnStone = document.getElementById('btn-buy-stone');
+
+    // 1. 알 구매 버튼: 펫이 없거나(stage0) 알 상태일 때만
+    if (stage === 0 && user.pet.id === 'egg_01') { 
+        // 초기 알(egg_01) 상태라면 구매 버튼 표시 (알을 아직 안 뽑은 상태)
+         btnEgg.style.display = 'block';
+    } else if (stage === 0 && user.pet.id.startsWith('pet_')) {
+        // 이미 알을 뽑았으면 숨김
+        btnEgg.style.display = 'none';
+    } else {
+        btnEgg.style.display = 'none';
     }
-    
-    if (user.tutorial.goalSet) {
-        btnGoal.classList.add('done');
-        btnGoal.style.background = "#eee";
-        btnGoal.style.color = "#999";
-        btnGoal.style.border = "1px solid #ccc";
-        btnGoal.onclick = null;
-        btnGoal.innerHTML = `<i class="fas fa-check"></i> 목표 설정 완료`;
+
+    // 2. 진화석 버튼: 1단계이고 레벨 10 이상일 때
+    if (stage === 1 && user.pet.lv >= 10) {
+        btnStone.style.display = 'block';
+    } else {
+        btnStone.style.display = 'none';
     }
 }
