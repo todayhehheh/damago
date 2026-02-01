@@ -17,13 +17,22 @@
         <main id="main-content">
             <section id="pet-section" class="active-section">
                 <div class="pet-container">
-                    <div class="speech-bubble" id="pet-speech">안녕! 반가워!</div>
+                    <div class="speech-bubble" id="pet-speech">안녕! 나를 키워줘!</div>
                     <img id="pet-img" src="images/pet_lv1.png" onerror="this.src='https://via.placeholder.com/200?text=PET'">
+                </div>
+
+                <div id="tutorial-area" style="margin: 0 20px 20px 20px;">
+                    <button id="btn-set-name" class="tutorial-btn" onclick="app.editName()">
+                        <i class="fas fa-pen"></i> 닉네임 짓기 (+10G) <i class="fas fa-check-circle check-icon"></i>
+                    </button>
+                    <button id="btn-set-goal" class="tutorial-btn" onclick="app.setGoal()">
+                        <i class="fas fa-flag"></i> 목표 정하기 (+20G) <i class="fas fa-check-circle check-icon"></i>
+                    </button>
                 </div>
                 
                 <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
                     <button class="btn-primary" style="background:#9b59b6; width:auto; padding:8px 12px; margin:0; font-size:0.85rem;" onclick="app.gacha()">
-                        🎲 알 받기 (100G)
+                        🎲 알 받기 (30G)
                     </button>
                     <button class="btn-primary" style="background:#34495e; width:auto; padding:8px 12px; margin:0; font-size:0.85rem;" onclick="app.buyStone()">
                         💎 진화의 돌 (200G)
@@ -48,12 +57,12 @@
                 </div>
             </section>
 
-            <section id="quest-section">
+            <section id="quest-section" class="hidden-section">
                 <h2>오늘의 퀘스트</h2>
                 <div id="quest-list"></div>
             </section>
 
-            <section id="feed-section">
+            <section id="feed-section" class="hidden-section">
                 <h2>우리 반 갤러리</h2>
                 <div id="feed-list"></div>
             </section>
@@ -64,6 +73,15 @@
             <button class="nav-btn" onclick="app.tab('quest-section', this)"><i class="fas fa-list"></i>퀘스트</button>
             <button class="nav-btn" onclick="app.tab('feed-section', this)"><i class="fas fa-images"></i>피드</button>
         </nav>
+    </div>
+
+    <div id="reward-popup">
+        <div class="popup-content">
+            <div class="reward-icon">🎁</div>
+            <div class="reward-text" id="popup-title">보상 획득!</div>
+            <div class="reward-sub" id="popup-desc">10 코인을 받았습니다.</div>
+            <button class="btn-primary" onclick="document.getElementById('reward-popup').style.display='none'">확인! 신난다!</button>
+        </div>
     </div>
 
     <div id="toast-container"></div>
