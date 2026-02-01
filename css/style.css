@@ -1,25 +1,45 @@
+/* --- 기본 설정 --- */
 :root { --primary: #FF9F1C; --secondary: #2EC4B6; --bg: #F0F2F5; --heart: #e74c3c; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans KR', sans-serif; -webkit-tap-highlight-color: transparent; }
 body { background: #ddd; display: flex; justify-content: center; height: 100vh; overflow: hidden; margin: 0; }
 .app-container { width: 100%; max-width: 420px; height: 100%; background: #F7F9FC; position: relative; display: flex; flex-direction: column; }
 
-/* 헤더 */
+/* 헤더 & 닉네임 */
 .app-header { height: 60px; padding: 0 20px; background: white; z-index: 10; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 #user-nickname { cursor: pointer; border-bottom: 1px dashed #999; }
 .coin-display { background: #fff8e1; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
 
-/* 메인 콘텐츠 */
+/* 메인 콘텐츠 & 섹션 */
 #main-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
 section { display: none; } 
 section.active-section { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
-/* 펫 영역 */
+/* 펫 영역 & 말풍선 */
 .pet-container { text-align: center; margin: 20px 0; }
 #pet-img { width: 200px; height: 200px; object-fit: contain; }
-.speech-bubble { background: #333; color: white; padding: 10px; border-radius: 15px; display: inline-block; margin-bottom: 10px; animation: bounce 2s infinite; min-width: 120px; position: relative; }
-.speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent; }
+.speech-bubble { 
+    background: #333; color: white; padding: 10px 15px; border-radius: 15px; 
+    display: inline-block; margin-bottom: 10px; min-width: 120px; position: relative;
+    animation: bounce 2s infinite; font-size: 0.9rem;
+}
+.speech-bubble::after {
+    content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    border-width: 8px 8px 0; border-style: solid; border-color: #333 transparent transparent transparent;
+}
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-/* 상태바 */
+/* 튜토리얼 버튼 */
+.tutorial-btn {
+    background: white; border: 2px dashed #FF9F1C; color: #FF9F1C;
+    padding: 10px; border-radius: 15px; width: 100%; margin-bottom: 10px;
+    font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.tutorial-btn:active { background: #fff8e1; }
+.check-icon { color: #4cd137; display: none; }
+.done .check-icon { display: inline-block; }
+
+/* 게이지바 */
 .level-info { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
 .exp-bar-bg { flex: 1; height: 10px; background: #ddd; border-radius: 5px; overflow: hidden; }
 .exp-bar { height: 100%; background: linear-gradient(90deg, #FF9F1C, #FFD700); width: 0%; transition: width 0.5s; }
@@ -27,12 +47,11 @@ section.active-section { display: block; animation: fadeIn 0.3s; }
 .progress-bar-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; margin-top:5px; margin-bottom: 10px;}
 .progress-bar { height: 100%; background: var(--secondary); width: 50%; }
 
-/* 버튼 */
+/* 버튼 & 카드 */
 .interaction-menu { display: flex; gap: 10px; }
 .action-btn { flex: 1; background: white; border: none; padding: 15px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
 .action-btn i { font-size: 1.5rem; color: var(--primary); display: block; margin-bottom: 5px; }
 
-/* 카드 스타일 */
 .quest-card, .feed-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 .quest-card { display: flex; justify-content: space-between; align-items: center; }
 .quest-tag { font-size: 0.8rem; padding: 3px 8px; border-radius: 5px; margin-right: 5px; }
@@ -47,7 +66,7 @@ section.active-section { display: block; animation: fadeIn 0.3s; }
 .like-btn { border: none; background: none; color: #ccc; font-size: 1.2rem; cursor: pointer; margin-top: 10px; display: flex; align-items: center; gap: 5px; }
 .like-btn.liked { color: var(--heart); }
 
-/* 하단 메뉴 & 모달 */
+/* 하단 탭 & 모달 */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 420px; height: 70px; background: white; display: flex; border-top: 1px solid #eee; z-index: 900; }
 .nav-btn { flex: 1; border: none; background: none; color: #ccc; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .nav-btn.active { color: var(--secondary); font-weight: bold; }
@@ -58,8 +77,28 @@ section.active-section { display: block; animation: fadeIn 0.3s; }
 .btn-primary { width: 100%; padding: 12px; background: var(--secondary); color: white; border: none; border-radius: 10px; margin-top: 10px; font-weight: bold; cursor: pointer; }
 .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
 
+/* ★ 팝업 & 토스트 애니메이션 ★ */
+#reward-popup {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); z-index: 5000; justify-content: center; align-items: center;
+}
+.popup-content {
+    background: white; padding: 30px; border-radius: 25px; text-align: center; width: 85%; max-width: 320px;
+    box-shadow: 0 10px 25px rgba(255, 159, 28, 0.4); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative; overflow: hidden;
+}
+.popup-content::before {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+    animation: rotate 3s linear infinite; pointer-events: none; opacity: 0.5;
+}
+.reward-icon { font-size: 4rem; color: #FFD700; margin-bottom: 15px; filter: drop-shadow(0 4px 0 #d4a017); animation: bounce 1s infinite; }
+.reward-text { font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 5px; }
+.reward-sub { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
+
 .toast-msg { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; z-index: 3000; animation: fadeUp 2s forwards; text-align: center; min-width: 200px; }
+
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes fadeUp { 0% { opacity: 0; transform: translate(-50%, 20px); } 20% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
